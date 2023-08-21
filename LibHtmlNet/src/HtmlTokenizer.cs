@@ -888,6 +888,42 @@ public class HtmlTokenizer
         }
     }
 
+    // 13.2.5.34 After attribute name state
+    // https://html.spec.whatwg.org/multipage/parsing.html#after-attribute-name-state
+    private void AfterAttributeNameState(byte currentInputCharacter)
+    {
+        switch (currentInputCharacter)
+        {
+            // Ignore the character.
+            case 0x09: // \t
+            case 0x0A: // \n
+            case 0x0C: // \f
+            case 0x20: // space
+                break;
+            
+            // Switch to the self-closing start tag state.
+            case 0x2F: // /
+                SwitchState(HtmlTokenizerState.SelfClosingStartTag);
+                break;
+            
+            // Switch to the before attribute value state.
+            case 0x3D: // =
+                SwitchState(HtmlTokenizerState.BeforeAttributeValue);
+                break;
+            
+            // Anything else
+            // Start a new attribute in the current tag token.
+            // Set that attribute name and value to the empty string.
+            // Reconsume in the attribute name state.
+            default:
+                CurrentToken<StartTagToken>().StartNewAttribute();
+                SwitchState(HtmlTokenizerState.AttributeName, reconsume: true);
+                break;
+        }
+        
+        // TODO: Implement EOF handling
+    }
+
     private void SwitchState(HtmlTokenizerState state, bool reconsume = false)
     {
         _currentState = state;
@@ -937,6 +973,7 @@ public class HtmlTokenizer
                     SelfClosingStartTagState(currentInputCharacter);
                     break;
                 case HtmlTokenizerState.AfterAttributeName:
+                    AfterAttributeNameState(currentInputCharacter);
                     break;
                 case HtmlTokenizerState.AttributeName:
                     AttributeNameState(currentInputCharacter);
