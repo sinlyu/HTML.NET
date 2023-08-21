@@ -3,17 +3,17 @@ using LibHtmlNet.Tokens;
 
 namespace LibHtmlNet;
 
-public class Tokenizer
+public class HtmlTokenizer
 {
     private readonly ByteBuffer _buffer;
-    private TokenizerState _currentState = TokenizerState.Data;
-    private TokenizerState _returnState = TokenizerState.Data;
+    private HtmlTokenizerState _currentState = HtmlTokenizerState.Data;
+    private HtmlTokenizerState _returnState = HtmlTokenizerState.Data;
     private List<Token> _tokens;
     private readonly Dictionary<Type, Token> _currentTokens;
     
     private bool _reconsume = false;
     
-    public Tokenizer(ByteBuffer buffer)
+    public HtmlTokenizer(ByteBuffer buffer)
     {
         _buffer = buffer;
         _tokens = new List<Token>(1000);
@@ -51,9 +51,13 @@ public class Tokenizer
         EmitToken<T>(new byte[] { currentInputCharacter });
     }
     
-    private void EmitToken<T>(byte[] data) where T : Token, new()
+    private void EmitToken<T>(IEnumerable<byte> data) where T : Token, new()
     {
+        // If T is CharacterToken, we ignore
+        if (typeof(T) == typeof(CharacterToken)) return;
+        
         var token = CurrentToken<T>();
+        
         token.Data = new List<byte>(data); 
         _tokens.Add(token);
         _currentTokens.Remove(typeof(T));
@@ -96,15 +100,15 @@ public class Tokenizer
             // Switch to TagOpen state if we encounter a 0x3C '<' character
             // <
             case 0x3C:
-                SwitchState(state: TokenizerState.TagOpen);
+                SwitchState(state: HtmlTokenizerState.TagOpen);
                 break;
             
             // Switch to CharacterReference state if we encounter a 0x26 '&' character
             // Set the return state to Data
             // &
             case 0x26:
-                SwitchState(state: TokenizerState.CharacterReference);
-                _returnState = TokenizerState.Data;
+                SwitchState(state: HtmlTokenizerState.CharacterReference);
+                _returnState = HtmlTokenizerState.Data;
                 break;
             
             // Emit the current input character as a character token
@@ -132,12 +136,12 @@ public class Tokenizer
         {
             // Switch to MarkupDeclaration state if we encounter a 0x21 '!' character
             case 0x21: // !
-                SwitchState(state: TokenizerState.MarkupDeclarationOpen);
+                SwitchState(state: HtmlTokenizerState.MarkupDeclarationOpen);
                 break;
             
             // Switch to EndTagOpen state if we encounter a 0x2F '/' character
             case 0x2F: // /
-                SwitchState(state: TokenizerState.EndTagOpen);
+                SwitchState(state: HtmlTokenizerState.EndTagOpen);
                 break;
             
             // Check if current input character is an ASCII alpha character
@@ -145,7 +149,7 @@ public class Tokenizer
             case >= 0x41 and <= 0x5A: // A-Z
             case >= 0x61 and <= 0x7A: // a-z
                 CurrentToken<StartTagToken>();
-                SwitchState(state: TokenizerState.TagName, reconsume: true);
+                SwitchState(state: HtmlTokenizerState.TagName, reconsume: true);
                 break;
             
             // This is an unexpected-question-mark-instead-of-tag-name parse error.
@@ -153,15 +157,15 @@ public class Tokenizer
             case 0x3F: // ?
                 // TODO: Implement ParseError
                 EmitToken<CommentToken>();
-                SwitchState(state: TokenizerState.BogusComment, reconsume: true);
+                SwitchState(state: HtmlTokenizerState.BogusComment, reconsume: true);
                 break;
             
             // This is an invalid-first-character-of-tag-name parse error.
             // Emit a U+003C LESS-THAN SIGN character token. Reconsume in the data state.
             default:
                 // TODO: Implement ParseError
-                EmitToken<CharacterToken>(0x3C );
-                SwitchState(state: TokenizerState.Data, reconsume: true);
+                EmitToken<CharacterToken>(0x3C);
+                SwitchState(state: HtmlTokenizerState.Data, reconsume: true);
                 break;
         }
         
@@ -177,14 +181,14 @@ public class Tokenizer
             case >= 0x41 and <= 0x5A: // A-Z
             case >= 0x61 and <= 0x7A: // a-z
                 CurrentToken<EndTagToken>();
-                SwitchState(state: TokenizerState.TagName, reconsume: true);
+                SwitchState(state: HtmlTokenizerState.TagName, reconsume: true);
                 break;
             
             // This is a missing-end-tag-name parse error.
             // Switch to the data state.
             case 0x3E: // >
                 // TODO: Implement ParseError
-                SwitchState(state: TokenizerState.Data);
+                SwitchState(state: HtmlTokenizerState.Data);
                 break;
             
             // This is an invalid-first-character-of-tag-name parse error.
@@ -193,7 +197,7 @@ public class Tokenizer
             default:
                 // TODO: Implement ParseError
                 EmitToken<CommentToken>();
-                SwitchState(state: TokenizerState.BogusComment);
+                SwitchState(state: HtmlTokenizerState.BogusComment);
                 break;
         }
         
@@ -209,18 +213,18 @@ public class Tokenizer
             case 0x0A: // \n
             case 0x0C: // \f
             case 0x20: // space
-                SwitchState(state: TokenizerState.BeforeAttributeName);
+                SwitchState(state: HtmlTokenizerState.BeforeAttributeName);
                 break;
             
             // Switch to the self-closing start tag state.
             case 0x2F: // /
-                SwitchState(state: TokenizerState.SelfClosingStartTag);
+                SwitchState(state: HtmlTokenizerState.SelfClosingStartTag);
                 break;
             
             // Switch to the data state. Emit the current tag token.
             case 0x3E: // >
                 EmitToken<TagToken>();
-                SwitchState(state: TokenizerState.Data);
+                SwitchState(state: HtmlTokenizerState.Data);
                 break;
             
             // ASCII upper alpha character
@@ -255,7 +259,7 @@ public class Tokenizer
             // Reconsume in the after attribute name state.
             case 0x2F: // /
             case 0x3E: // >
-                SwitchState(state: TokenizerState.AfterAttributeName, reconsume: true);
+                SwitchState(state: HtmlTokenizerState.AfterAttributeName, reconsume: true);
                 break;
             
             // This is an unexpected-equals-sign-before-attribute-name parse error.
@@ -264,7 +268,7 @@ public class Tokenizer
             case 0x3D: // =
                 // TODO: Implement ParseError
                 CurrentToken<StartTagToken>().StartNewAttribute(Encoding.UTF8.GetString(new [] { currentInputCharacter }));
-                SwitchState(TokenizerState.AttributeName);
+                SwitchState(HtmlTokenizerState.AttributeName);
                 break;
             
             // Anything else
@@ -272,7 +276,7 @@ public class Tokenizer
             // Set that attribute's name and value to the empty string.
             default:
                 CurrentToken<StartTagToken>().StartNewAttribute();
-                SwitchState(TokenizerState.AttributeName, reconsume: true);
+                SwitchState(HtmlTokenizerState.AttributeName, reconsume: true);
                 break;  
         }
         
@@ -290,12 +294,12 @@ public class Tokenizer
             case 0x20: // space
             case 0x2F: // /
             case 0x3E: // >
-                SwitchState(TokenizerState.AfterAttributeName, reconsume: true);
+                SwitchState(HtmlTokenizerState.AfterAttributeName, reconsume: true);
                 break;
             
             // Switch to the before attribute value state.
             case 0x3D: // =
-                SwitchState(TokenizerState.BeforeAttributeValue);
+                SwitchState(HtmlTokenizerState.BeforeAttributeValue);
                 break;
             
             // ASCII upper alpha character
@@ -333,7 +337,7 @@ public class Tokenizer
         {
             Consume();
             CurrentToken<CommentToken>();
-            SwitchState(TokenizerState.CommentStart);
+            SwitchState(HtmlTokenizerState.CommentStart);
         }
         
         // If the next seven characters are an ASCII case-insensitive match for the word "DOCTYPE"
@@ -341,7 +345,7 @@ public class Tokenizer
         else if (_buffer.MatchCaseInsensitiveString("DOCTYPE"))
         {
             Consume(7);
-            SwitchState(TokenizerState.DocType);
+            SwitchState(HtmlTokenizerState.DocType);
         }
         
         // If the next seven characters are an ASCII case-insensitive match for the string "[CDATA["
@@ -351,7 +355,7 @@ public class Tokenizer
             // TODO: Implement check for adjusted current node being an element in the HTML namespace
             // TODO: Implement ParseError
             Consume(7);
-            SwitchState(TokenizerState.CDataSection);
+            SwitchState(HtmlTokenizerState.CDataSection);
         }
 
         // This is an incorrectly-opened-comment parse error.
@@ -361,7 +365,7 @@ public class Tokenizer
         {
             // TODO: Implement ParseError
             CurrentToken<CommentToken>();
-            SwitchState(TokenizerState.BogusComment);
+            SwitchState(HtmlTokenizerState.BogusComment);
         }
     }
 
@@ -374,12 +378,12 @@ public class Tokenizer
             case 0x0A: // \n
             case 0x0C: // \f
             case 0x20: // space
-                SwitchState(TokenizerState.BeforeDocTypeName);
+                SwitchState(HtmlTokenizerState.BeforeDocTypeName);
                 break;
             
             // Reconsume in the before DOCTYPE name state.
             case 0x3E: // >
-                SwitchState(TokenizerState.BeforeDocTypeName, reconsume: true);
+                SwitchState(HtmlTokenizerState.BeforeDocTypeName, reconsume: true);
                 break;
             
             // Anything else
@@ -387,7 +391,7 @@ public class Tokenizer
             // Reconsume in the before DOCTYPE name state.
             default:
                 // TODO: Implement ParseError
-                SwitchState(TokenizerState.BeforeDocTypeName, reconsume: true);
+                SwitchState(HtmlTokenizerState.BeforeDocTypeName, reconsume: true);
                 break;
         }
         
@@ -410,7 +414,7 @@ public class Tokenizer
             // Switch to the DOCTYPE name state.
             case >= 0x41 and <= 0x5A: // A-Z
                 CurrentToken<DocTypeToken>().Name = Encoding.UTF8.GetString(new [] { (byte)(currentInputCharacter + 0x20) });
-                SwitchState(TokenizerState.DocTypeName);
+                SwitchState(HtmlTokenizerState.DocTypeName);
                 break;
             
             // This is an unexpected-null-character parse error.
@@ -419,7 +423,7 @@ public class Tokenizer
             case 0x00: // NULL
                 CurrentToken<DocTypeToken>().ForceQuirks = true;
                 EmitToken<DocTypeToken>();
-                SwitchState(TokenizerState.Data);
+                SwitchState(HtmlTokenizerState.Data);
                 break;
             
             // This is an missing-doctype-name parse error.
@@ -429,7 +433,7 @@ public class Tokenizer
             case 0x3E: // >
                 CurrentToken<DocTypeToken>().ForceQuirks = true;
                 EmitToken<DocTypeToken>();
-                SwitchState(TokenizerState.Data);
+                SwitchState(HtmlTokenizerState.Data);
                 break;
             
             // Anything else
@@ -437,7 +441,7 @@ public class Tokenizer
             // Switch to the DOCTYPE name state.
             default:
                 CurrentToken<DocTypeToken>().Name = Encoding.UTF8.GetString(new [] { currentInputCharacter });
-                SwitchState(TokenizerState.DocTypeName);
+                SwitchState(HtmlTokenizerState.DocTypeName);
                 break;
         }
     }
@@ -457,7 +461,7 @@ public class Tokenizer
             // Emit the current DOCTYPE token.
             case 0x3E: // >
                 EmitToken<DocTypeToken>();
-                SwitchState(TokenizerState.Data);
+                SwitchState(HtmlTokenizerState.Data);
                 break;
             
             // ASCII upper alpha character
@@ -496,12 +500,12 @@ public class Tokenizer
             
             // Switch to the attribute value (double-quoted) state.
             case 0x22: // "
-                SwitchState(TokenizerState.AttributeValueDoubleQuoted);
+                SwitchState(HtmlTokenizerState.AttributeValueDoubleQuoted);
                 break;
             
             // Switch to the attribute value (single-quoted) state.
             case 0x27: // '
-                SwitchState(TokenizerState.AttributeValueSingleQuoted);
+                SwitchState(HtmlTokenizerState.AttributeValueSingleQuoted);
                 break;
             
             case 0x3E: // >
@@ -509,13 +513,13 @@ public class Tokenizer
                 // Switch to the data state.
                 // Emit the current tag token.
                 // TODO: Implement ParseError
-                SwitchState(TokenizerState.Data);
+                SwitchState(HtmlTokenizerState.Data);
                 EmitToken<TagToken>();
                 break;
             
             // Reconsume in the attribute value (unquoted) state.
             default:
-                SwitchState(TokenizerState.AttributeValueUnquoted, reconsume: true);
+                SwitchState(HtmlTokenizerState.AttributeValueUnquoted, reconsume: true);
                 break;
         }
     }
@@ -526,21 +530,21 @@ public class Tokenizer
         {
             // Switch to the comment start dash state.
             case 0x2D: // -
-                SwitchState(TokenizerState.CommentStartDash);
+                SwitchState(HtmlTokenizerState.CommentStartDash);
                 break;
             
             // This is an abrupt-closing-of-empty-comment parse error.
             // Switch to the date state.
             // Emit the comment token.
             case 0x3E: // >
-                SwitchState(TokenizerState.Data);
+                SwitchState(HtmlTokenizerState.Data);
                 EmitToken<CommentToken>();
                 break;
             
             // Anything else
             // Reconsume in the comment state.
             default:
-                SwitchState(TokenizerState.Comment, reconsume: true);
+                SwitchState(HtmlTokenizerState.Comment, reconsume: true);
                 break;
         }
     }
@@ -553,18 +557,18 @@ public class Tokenizer
             // Switch to the comment less-than sign state.
             case 0x3C: // <
                 CurrentToken<CommentToken>().Data.Add(currentInputCharacter);
-                SwitchState(TokenizerState.CommentLessThanSign);
+                SwitchState(HtmlTokenizerState.CommentLessThanSign);
                 break;
             
             // Switch to the comment end dash state
             case 0x2D: // -
-                SwitchState(TokenizerState.CommentEndDash);
+                SwitchState(HtmlTokenizerState.CommentEndDash);
                 break;
             
             // This is an unexpected-null-character parse error.
             // Append a U+FFFD REPLACEMENT CHARACTER character to the comment token's data.
             case 0x00: // NULL
-                CurrentToken<CommentToken>().Data.AddRange(Encoding.UTF8.GetBytes("\uFFFD"));
+                CurrentToken<CommentToken>().Data.AddRange("\uFFFD"u8.ToArray());
                 break;
             
             // Anything else
@@ -583,14 +587,14 @@ public class Tokenizer
         {
             // Switch to the after attribute value (quoted) state.
             case 0x22: // "
-                SwitchState(TokenizerState.AfterAttributeValueQuoted);
+                SwitchState(HtmlTokenizerState.AfterAttributeValueQuoted);
                 break;
             
             case 0x26: // &
                 // Set the return state to the attribute value (double-quoted) state.
                 // Switch to the character reference state.
-                _returnState = TokenizerState.AttributeValueDoubleQuoted;
-                SwitchState(TokenizerState.CharacterReference);
+                _returnState = HtmlTokenizerState.AttributeValueDoubleQuoted;
+                SwitchState(HtmlTokenizerState.CharacterReference);
                 break;
             
             case 0x00: // NULL
@@ -616,17 +620,17 @@ public class Tokenizer
             case 0x0A: // \n
             case 0x0C: // \f
             case 0x20: // space
-                SwitchState(TokenizerState.BeforeAttributeName);
+                SwitchState(HtmlTokenizerState.BeforeAttributeName);
                 break;
             
             // Switch to the self-closing start tag state.
             case 0x2F: // /
-                SwitchState(TokenizerState.SelfClosingStartTag);
+                SwitchState(HtmlTokenizerState.SelfClosingStartTag);
                 break;
             
             // Switch to the data state.
             case 0x3E: // >
-                SwitchState(TokenizerState.Data);
+                SwitchState(HtmlTokenizerState.Data);
                 EmitToken<TagToken>();
                 break;
             
@@ -634,15 +638,256 @@ public class Tokenizer
             // This is a missing-whitespace-between-attributes parse error.
             // Reconsume in the before attribute name state.
             default:
-                SwitchState(TokenizerState.BeforeAttributeName, reconsume: true);
+                SwitchState(HtmlTokenizerState.BeforeAttributeName, reconsume: true);
                 break;
         }
         
         // TODO: Implement EOF handling
     }
 
+    // 13.2.5.50 Comment end dash state
+    // https://html.spec.whatwg.org/multipage/parsing.html#comment-end-dash-state
+    private void CommentEndDashState(byte currentInputCharacter)
+    {
+        switch (currentInputCharacter)
+        {
+            // Switch to the comment end state.
+            case 0x2D: // -
+                SwitchState(HtmlTokenizerState.CommentEnd);
+                break;
+            
+            // Anything else
+            // Append a U+002D HYPHEN-MINUS character (-) to the comment token's data.
+            // Reconsume in the comment state.
+            default:
+                CurrentToken<CommentToken>().Data.Add(0x2D);
+                SwitchState(HtmlTokenizerState.Comment, reconsume: true);
+                break;
+        }
+        
+        // TODO: Implement EOF handling
+    }
+    
+    // 13.2.5.51 Comment end state
+    // https://html.spec.whatwg.org/multipage/parsing.html#comment-end-state
+    private void CommentEndState(byte currentInputCharacter)
+    {
+        switch (currentInputCharacter)
+        {
+            // Switch to the data state.
+            // Emit the current comment token.
+            case 0x3E: // >
+                SwitchState(HtmlTokenizerState.Data);
+                EmitToken<CommentToken>(CurrentToken<CommentToken>().Data);
+                break;
+            
+            // Switch to the comment end bang state.
+            case 0x21: // !
+                SwitchState(HtmlTokenizerState.CommentEndBang);
+                break;
+            
+            // Append a U+002D HYPHEN-MINUS character (-) to the comment token's data.
+            case 0x2D: // -
+                CurrentToken<CommentToken>().Data.Add(0x2D);
+                break;
+            
+            // Append two U+002D HYPHEN-MINUS characters (-) to the comment token's data.
+            // Reconsume in the comment state.
+            default:
+                CurrentToken<CommentToken>().Data.AddRange(new byte[] { 0x2D, 0x2D });
+                SwitchState(HtmlTokenizerState.Comment, reconsume: true);
+                break;
+        }
+    }
 
-    private void SwitchState(TokenizerState state, bool reconsume = false)
+    // 13.2.5.52 Comment end bang state
+    // https://html.spec.whatwg.org/multipage/parsing.html#comment-end-bang-state
+    private void CommentEndBangState(byte currentInputCharacter)
+    {
+        switch (currentInputCharacter)
+        {
+            // Append two U+002D HYPHEN-MINUS characters (-) and a U+0021 EXCLAMATION MARK character (!) to the comment token's data.
+            // Switch to the comment end dash state.
+            case 0x2D: // -
+                CurrentToken<CommentToken>().Data.AddRange(new byte[] { 0x2D, 0x2D, 0x21 });
+                SwitchState(HtmlTokenizerState.CommentEndDash);
+                break;
+            
+            // This is an incorrectly-closed-comment parse error.
+            // Switch to the data state.
+            // Emit the current comment token.
+            case 0x3E: // >
+                // TODO: Implement ParseError
+                SwitchState(HtmlTokenizerState.Data);
+                EmitToken<CommentToken>();
+                break;
+            
+            // Anything else
+            // Append two U+002D HYPHEN-MINUS characters (-) and a U+0021 EXCLAMATION MARK character (!) to the comment token's data.
+            // Reconsume in the comment state. 
+            default:
+                CurrentToken<CommentToken>().Data.AddRange(new byte[] { 0x2D, 0x2D, 0x21 });
+                SwitchState(HtmlTokenizerState.Comment, reconsume: true);
+                break;
+        }
+        
+        // TODO: Implement EOF handling
+    }
+
+    // 13.2.5.44 Comment start dash state
+    // https://html.spec.whatwg.org/multipage/parsing.html#comment-start-dash-state
+    private void CommentStartDashState(byte currentInputCharacter)
+    {
+        switch (currentInputCharacter)
+        {
+            // Switch to the comment end state.
+            case 0x2D: // -
+                SwitchState(HtmlTokenizerState.CommentEnd);
+                break;
+            
+            // This is an abrupt-closing-of-empty-comment parse error.
+            // Switch to the data state.
+            // Emit the current comment token.
+            case 0x3E: // >
+                // TODO: Implement ParseError
+                SwitchState(HtmlTokenizerState.Data);
+                EmitToken<CommentToken>();
+                break;
+            
+            // Append a U+002D HYPHEN-MINUS character (-) to the comment token's data.
+            // Reconsume in the comment state.
+            default:
+                CurrentToken<CommentToken>().Data.Add(0x2D);
+                SwitchState(HtmlTokenizerState.Comment, reconsume: true);
+                break;
+        }
+    }
+
+    // 13.2.5.41 Bogus comment state
+    // https://html.spec.whatwg.org/multipage/parsing.html#bogus-comment-state
+    private void BogusCommentState(byte currentInputCharacter)
+    {
+        switch (currentInputCharacter)
+        {
+            // Switch to the data state.
+            // Emit the current comment token.
+            case 0x3E: // >
+                SwitchState(HtmlTokenizerState.Data);
+                EmitToken<CommentToken>();
+                break;
+            
+            // This is an unexpected-null-character parse error.
+            // Append a U+FFFD REPLACEMENT CHARACTER character to the comment token's data.
+            case 0x00: // NULL
+                // TODO: Implement ParseError
+                CurrentToken<CommentToken>().Data.AddRange("\uFFFD"u8.ToArray());
+                break;
+            
+            // Anything else
+            // Append the current input character to the comment token's data.
+            default:
+                CurrentToken<CommentToken>().Data.Add(currentInputCharacter);
+                break;
+        }
+        
+        // TODO: Implement EOF handling
+    }
+
+    // 13.2.5.46 Comment less-than sign state
+    // https://html.spec.whatwg.org/multipage/parsing.html#comment-less-than-sign-state
+    private void CommentLessThanSignState(byte currentInputCharacter)
+    {
+        switch (currentInputCharacter)
+        {
+            // Append the current input character to the comment token's data.
+            // Switch to the comment less-than sign bang state.
+            case 0x21: // !
+                CurrentToken<CommentToken>().Data.Add(currentInputCharacter);
+                SwitchState(HtmlTokenizerState.CommentLessThanSignBang);
+                break;
+            
+            // Append the current input character to the comment token's data.
+            case 0x3C:
+                CurrentToken<CommentToken>().Data.Add(currentInputCharacter);
+                break;
+            
+            // Anything else
+            // Reconsume in the comment state.
+            default:
+                SwitchState(HtmlTokenizerState.Comment, reconsume: true);
+                break;
+        }
+    }
+
+
+    // 13.2.5.47 Comment less-than sign bang state
+    // https://html.spec.whatwg.org/multipage/parsing.html#comment-less-than-sign-bang-state
+    private void CommentLessThanSignBangState(byte currentInputCharacter)
+    {
+        switch (currentInputCharacter)
+        {
+            // Switch to the comment less-than sign bang dash dash state.
+            case 0x2D: // -
+                SwitchState(HtmlTokenizerState.CommentLessThanSignBangDashDash);
+                break;
+            
+            // Anything else
+            // Reconsume in the comment end dash state.
+            default:
+                SwitchState(HtmlTokenizerState.CommentEndDash, reconsume: true);
+                break;
+        }
+    }
+    
+    // 13.2.5.49 Comment less-than sign bang dash dash state
+    // https://html.spec.whatwg.org/multipage/parsing.html#comment-less-than-sign-bang-dash-dash-state
+    private void CommentLessThanSignBangDashDashState(byte currentInputCharacter)
+    {
+        switch (currentInputCharacter)
+        {
+            // Reconsume in the comment end state.
+            case 0x3E: // <
+                SwitchState(HtmlTokenizerState.CommentEnd, reconsume: true);
+                break;
+            
+            // Anything else
+            // This is a nested-comment parse error.
+            // Reconsume in the comment end state.
+            default:
+                // TODO: Implement ParseError
+                SwitchState(HtmlTokenizerState.CommentEnd, reconsume: true);
+                break;
+        }
+        
+        // TODO: Implement EOF handling
+    }
+
+    // 13.2.5.40 Self-closing start tag state
+    // https://html.spec.whatwg.org/multipage/parsing.html#self-closing-start-tag-state
+    private void SelfClosingStartTagState(byte currentInputCharacter)
+    {
+        switch (currentInputCharacter)
+        {
+            // Set the self-closing flag of the current tag token.
+            // Switch to the data state.
+            // Emit the current tag token.
+            case 0x3E: // >
+                CurrentToken<StartTagToken>().SelfClosing = true;
+                SwitchState(HtmlTokenizerState.Data);
+                EmitToken<TagToken>();
+                break;
+            
+            // Anything else
+            // This is an unexpected-solidus-in-tag parse error.
+            // Reconsume in the before attribute name state.
+            default:
+                // TODO: Implement ParseError
+                SwitchState(HtmlTokenizerState.BeforeAttributeName, reconsume: true);
+                break;
+        }
+    }
+
+    private void SwitchState(HtmlTokenizerState state, bool reconsume = false)
     {
         _currentState = state;
         _reconsume = reconsume;
@@ -651,77 +896,94 @@ public class Tokenizer
     public void Tokenize()
     {
         Console.WriteLine("Start tokenizing...");
-        _currentState = TokenizerState.Data;
+        _currentState = HtmlTokenizerState.Data;
         while (!_buffer.IsEndOfBuffer())
         {
             var currentInputCharacter = Consume();
 
             switch (_currentState)
             {
-                case TokenizerState.Data:
+                case HtmlTokenizerState.Data:
                     DataState(currentInputCharacter);
                     break;
-                case TokenizerState.CharacterReference:
+                case HtmlTokenizerState.CharacterReference:
                     break;
-                case TokenizerState.TagOpen:
+                case HtmlTokenizerState.TagOpen:
                     TagOpenState(currentInputCharacter);
                     break;
-                case TokenizerState.EndTagOpen:
+                case HtmlTokenizerState.EndTagOpen:
                     EndTagOpenState(currentInputCharacter);
                     break;
-                case TokenizerState.TagName:
+                case HtmlTokenizerState.TagName:
                     TagNameState(currentInputCharacter);
                     break;
-                case TokenizerState.BeforeAttributeName:
+                case HtmlTokenizerState.BeforeAttributeName:
                     BeforeAttributeNameState(currentInputCharacter);
                     break;
-                case TokenizerState.DocType:
+                case HtmlTokenizerState.DocType:
                     DocTypeState(currentInputCharacter);
                     break;
-                case TokenizerState.MarkupDeclarationOpen:
+                case HtmlTokenizerState.MarkupDeclarationOpen:
                     MarkupDeclarationOpenState(currentInputCharacter);
                     break;
-                case TokenizerState.CommentStart:
+                case HtmlTokenizerState.CommentStart:
                     CommentStartState(currentInputCharacter);
                     break;
-                case TokenizerState.BogusComment:
+                case HtmlTokenizerState.BogusComment:
+                    BogusCommentState(currentInputCharacter);
                     break;
-                case TokenizerState.SelfClosingStartTag:
+                case HtmlTokenizerState.SelfClosingStartTag:
+                    SelfClosingStartTagState(currentInputCharacter);
                     break;
-                case TokenizerState.AfterAttributeName:
+                case HtmlTokenizerState.AfterAttributeName:
                     break;
-                case TokenizerState.AttributeName:
+                case HtmlTokenizerState.AttributeName:
                     AttributeNameState(currentInputCharacter);
                     break;
-                case TokenizerState.BeforeAttributeValue:
+                case HtmlTokenizerState.BeforeAttributeValue:
                     BeforeAttributeValueState(currentInputCharacter);
                     break;
-                case TokenizerState.CDataSection:
+                case HtmlTokenizerState.CDataSection:
                     break;
-                case TokenizerState.BeforeDocTypeName:
+                case HtmlTokenizerState.BeforeDocTypeName:
                     BeforeDocTypeName(currentInputCharacter);
                     break;
-                case TokenizerState.DocTypeName:
+                case HtmlTokenizerState.DocTypeName:
                     DocTypeNameState(currentInputCharacter);
                     break;
-                case TokenizerState.AttributeValueDoubleQuoted:
+                case HtmlTokenizerState.AttributeValueDoubleQuoted:
                     AttributeValueDoubleQuotedState(currentInputCharacter);
                     break;
-                case TokenizerState.AttributeValueSingleQuoted:
+                case HtmlTokenizerState.AttributeValueSingleQuoted:
                     break;
-                case TokenizerState.AttributeValueUnquoted:
+                case HtmlTokenizerState.AttributeValueUnquoted:
                     break;
-                case TokenizerState.CommentStartDash:
+                case HtmlTokenizerState.CommentStartDash:
+                    CommentStartDashState(currentInputCharacter);
                     break;
-                case TokenizerState.Comment:
+                case HtmlTokenizerState.Comment:
                     CommentState(currentInputCharacter);
                     break;
-                case TokenizerState.CommentLessThanSign:
+                case HtmlTokenizerState.CommentLessThanSign:
+                    CommentLessThanSignState(currentInputCharacter);
                     break;
-                case TokenizerState.CommentEndDash:
+                case HtmlTokenizerState.CommentEndDash:
+                    CommentEndDashState(currentInputCharacter);
                     break;
-                case TokenizerState.AfterAttributeValueQuoted:
+                case HtmlTokenizerState.AfterAttributeValueQuoted:
                     AfterAttributeValueQuotedState(currentInputCharacter);
+                    break;
+                case HtmlTokenizerState.CommentEnd:
+                    CommentEndState(currentInputCharacter);
+                    break;
+                case HtmlTokenizerState.CommentEndBang:
+                    CommentEndBangState(currentInputCharacter);
+                    break;
+                case HtmlTokenizerState.CommentLessThanSignBang:
+                    CommentLessThanSignBangState(currentInputCharacter);
+                    break;
+                case HtmlTokenizerState.CommentLessThanSignBangDashDash:
+                    CommentLessThanSignBangDashDashState(currentInputCharacter);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();

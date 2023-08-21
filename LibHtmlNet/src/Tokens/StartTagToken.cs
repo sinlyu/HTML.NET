@@ -5,6 +5,8 @@ public class StartTagToken : TagToken
     public TagAttribute CurrentAttribute { get; set; }
  
     public List<TagAttribute> Attributes { get; set; }
+    
+    public bool SelfClosing { get; set; }
 
     public StartTagToken()
     {

@@ -1,6 +1,6 @@
 ﻿namespace LibHtmlNet;
 
-public enum TokenizerState
+public enum HtmlTokenizerState
 {
     CharacterReference,
     TagOpen,
@@ -26,5 +26,9 @@ public enum TokenizerState
     Comment,
     CommentLessThanSign,
     CommentEndDash,
-    AfterAttributeValueQuoted
+    AfterAttributeValueQuoted,
+    CommentEnd,
+    CommentEndBang,
+    CommentLessThanSignBang,
+    CommentLessThanSignBangDashDash
 }
