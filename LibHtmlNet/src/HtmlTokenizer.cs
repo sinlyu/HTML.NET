@@ -53,6 +53,7 @@ public class HtmlTokenizer
     
     private void EmitToken<T>(IEnumerable<byte> data) where T : Token, new()
     {
+        // TODO: Remove this if statement
         // If T is CharacterToken, we ignore
         if (typeof(T) == typeof(CharacterToken)) return;
         
