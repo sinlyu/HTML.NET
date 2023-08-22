@@ -134,7 +134,7 @@ public partial class HTMLTokenizer
 
     private byte NextCodePoint()
     {
-        //TODO: Work with char instead of byte
+        // TODO: Work with char instead of byte
         // Normalize newlines to \n
         // https://infra.spec.whatwg.org/#normalize-newlines
         

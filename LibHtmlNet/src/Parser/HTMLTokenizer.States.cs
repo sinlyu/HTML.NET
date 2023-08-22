@@ -281,7 +281,7 @@ public partial class HTMLTokenizer
         // Consume those two characters, create a comment token whose data is the empty string, and switch to the comment start state.
         if (currentInputCharacter == 0x2D && _buffer.PeekByte() == 0x2D)
         {
-            Consume();
+            Skip(1);
             CurrentToken<CommentToken>();
             SwitchState(HtmlTokenizerState.CommentStart);
         }
