@@ -20,6 +20,13 @@ public class TagToken : HTMLToken
 
     public void NewAttribute(string name = "")
     {
+        if (Attributes.ContainsKey(name))
+        {
+            // TODO: Log warning
+            // Attribute already exists, drop it
+            return;
+        }
+        
         _currentAttribute = new KeyValuePair<string, string>(name, string.Empty);
         Attributes.Add(_currentAttribute.Key, _currentAttribute.Value);
     }
@@ -31,8 +38,11 @@ public class TagToken : HTMLToken
 
     public void AddAttributeName(string value)
     {
-        _currentAttribute = new KeyValuePair<string, string>(value, string.Empty);
-        Attributes.Add(_currentAttribute.Key, _currentAttribute.Value);
+        // FIXME: This is a hack to to replace the Key of the current attribute
+        var attribute = new KeyValuePair<string, string>(value, _currentAttribute.Value);
+        Attributes.Remove(_currentAttribute.Key);
+        Attributes.Add(attribute.Key, attribute.Value);
+        _currentAttribute = attribute;
     }
 
     public void AddAttributeName(char value)

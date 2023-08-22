@@ -17,6 +17,7 @@ public abstract class HTMLToken
     }
 
     public HTMLTokenType Type { get; protected set; }
+    public long Position { get; set; }
     
     // TODO: Instead of string we could use a StringBuilder
     public string Data { get; set; }

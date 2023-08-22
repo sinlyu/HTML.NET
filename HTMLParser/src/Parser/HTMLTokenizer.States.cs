@@ -58,10 +58,9 @@ public partial class HTMLTokenizer
 
             // Emit the current input character as a character token
             case '\0':
-                // TODO: Implement ParseError
-                // unexpected-null-character
                 var token = CurrentToken<CharacterToken>();
-
+                LogParseError("unexpected-null-character", token);
+                
                 // TODO: Implement an elegant way to populate the token data
                 token.Data = string.Empty;
                 token.Data += currentInputCharacter;
@@ -103,7 +102,7 @@ public partial class HTMLTokenizer
             // This is an unexpected-question-mark-instead-of-tag-name parse error.
             // Create a comment token whose data is the empty string. Reconsume in the bogus comment state.
             case '?': // ?
-                // TODO: Implement ParseError
+                LogParseError("unexpected-question-mark-instead-of-tag-name", CurrentToken<CommentToken>());
                 EmitToken<CommentToken>();
                 SwitchState(HtmlTokenizerState.BogusComment, true);
                 break;
@@ -111,7 +110,7 @@ public partial class HTMLTokenizer
             // This is an invalid-first-character-of-tag-name parse error.
             // Emit a U+003C LESS-THAN SIGN character token. Reconsume in the data state.
             default:
-                // TODO: Implement ParseError
+                LogParseError("invalid-first-character-of-tag-name", CurrentToken<CharacterToken>());
                 EmitToken<CharacterToken>('<');
                 SwitchState(HtmlTokenizerState.Data, true);
                 break;
@@ -135,7 +134,7 @@ public partial class HTMLTokenizer
             // This is a missing-end-tag-name parse error.
             // Switch to the data state.
             case '>': // >
-                // TODO: Implement ParseError
+                LogParseError("missing-end-tag-name", CurrentToken<CharacterToken>());
                 SwitchState(HtmlTokenizerState.Data);
                 break;
 
@@ -143,7 +142,7 @@ public partial class HTMLTokenizer
             // Create a comment token whose data is the empty string.
             // Reconsume in the bogus comment state.
             default:
-                // TODO: Implement ParseError
+                LogParseError("invalid-first-character-of-tag-name", CurrentToken<CommentToken>());
                 EmitToken<CommentToken>();
                 SwitchState(HtmlTokenizerState.BogusComment);
                 break;
@@ -212,7 +211,7 @@ public partial class HTMLTokenizer
             // Start a new attribute in the current tag token. Set that attribute's name to the current input character,
             // and its value to the empty string. Switch to the attribute name state.
             case '=': // =
-                // TODO: Implement ParseError
+                LogParseError("unexpected-equals-sign-before-attribute-name", CurrentToken<CharacterToken>());
                 CurrentToken<StartTagToken>().NewAttribute(currentInputCharacter);
                 SwitchState(HtmlTokenizerState.AttributeName);
                 break;
@@ -265,7 +264,8 @@ public partial class HTMLTokenizer
             case '"': // "
             case '\'': // '
             case '<': // <
-            // TODO: Implement ParseError
+                LogParseError("unexpected-character-in-attribute-name", CurrentToken<CharacterToken>());
+                break;
             // https://html.spec.whatwg.org/multipage/parsing.html#attribute-name-state
             default:
                 CurrentToken<StartTagToken>().AddAttributeName(currentInputCharacter);
@@ -307,7 +307,7 @@ public partial class HTMLTokenizer
         // Switch to the bogus comment state (don't consume anything in the current state).
         else
         {
-            // TODO: Implement ParseError
+            LogParseError("incorrectly-opened-comment", CurrentToken<CommentToken>());
             CurrentToken<CommentToken>();
             SwitchState(HtmlTokenizerState.BogusComment);
         }
@@ -334,7 +334,7 @@ public partial class HTMLTokenizer
             // This is a missing-whitespace-before-doctype-name parse error.
             // Reconsume in the before DOCTYPE name state.
             default:
-                // TODO: Implement ParseError
+                LogParseError("missing-whitespace-before-doctype-name", CurrentToken<CharacterToken>());
                 SwitchState(HtmlTokenizerState.BeforeDocTypeName, true);
                 break;
         }
@@ -418,7 +418,7 @@ public partial class HTMLTokenizer
             // This is an unexpected-null-character parse error.
             // Append a U+FFFD REPLACEMENT CHARACTER character to the current DOCTYPE token's name.
             case '\0': // NULL
-                // TODO: Implement ParseError
+                LogParseError("unexpected-null-character", CurrentToken<CharacterToken>());
                 CurrentToken<DOCTYPEToken>().Name += "\uFFFD";
                 break;
 
@@ -457,7 +457,7 @@ public partial class HTMLTokenizer
                 // This is a missing-attribute-value parse error.
                 // Switch to the data state.
                 // Emit the current tag token.
-                // TODO: Implement ParseError
+                LogParseError("missing-attribute-value", CurrentToken<CharacterToken>());
                 SwitchState(HtmlTokenizerState.Data);
                 EmitToken<TagToken>();
                 break;
@@ -662,7 +662,7 @@ public partial class HTMLTokenizer
             // Switch to the data state.
             // Emit the current comment token.
             case '>': // >
-                // TODO: Implement ParseError
+                LogParseError("incorrectly-closed-comment", CurrentToken<CommentToken>());
                 SwitchState(HtmlTokenizerState.Data);
                 EmitToken<CommentToken>();
                 break;
@@ -694,7 +694,7 @@ public partial class HTMLTokenizer
             // Switch to the data state.
             // Emit the current comment token.
             case '>': // >
-                // TODO: Implement ParseError
+                LogParseError("abrupt-closing-of-empty-comment", CurrentToken<CommentToken>());
                 SwitchState(HtmlTokenizerState.Data);
                 EmitToken<CommentToken>();
                 break;
@@ -724,7 +724,7 @@ public partial class HTMLTokenizer
             // This is an unexpected-null-character parse error.
             // Append a U+FFFD REPLACEMENT CHARACTER character to the comment token's data.
             case '\0': // NULL
-                // TODO: Implement ParseError
+                LogParseError("unexpected-null-character", CurrentToken<CommentToken>());
                 CurrentToken<CommentToken>().Data += "\uFFFD";
                 break;
 
@@ -799,7 +799,7 @@ public partial class HTMLTokenizer
             // This is a nested-comment parse error.
             // Reconsume in the comment end state.
             default:
-                // TODO: Implement ParseError
+                LogParseError("nested-comment", CurrentToken<CommentToken>());
                 SwitchState(HtmlTokenizerState.CommentEnd, true);
                 break;
         }
@@ -826,7 +826,7 @@ public partial class HTMLTokenizer
             // This is an unexpected-solidus-in-tag parse error.
             // Reconsume in the before attribute name state.
             default:
-                // TODO: Implement ParseError
+                LogParseError("unexpected-solidus-in-tag", CurrentToken<CharacterToken>());
                 SwitchState(HtmlTokenizerState.BeforeAttributeName, true);
                 break;
         }
@@ -864,7 +864,12 @@ public partial class HTMLTokenizer
                 SwitchState(HtmlTokenizerState.AttributeName, true);
                 break;
         }
-
+        
         // TODO: Implement EOF handling
+    }
+    
+    private void LogParseError(string reason, HTMLToken token)
+    {
+        Console.WriteLine("ParseError: " + reason + " at " + token.Position + " in " + token.GetType().Name + "");
     }
 }

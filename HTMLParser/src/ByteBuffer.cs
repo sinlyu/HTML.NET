@@ -6,13 +6,13 @@ namespace HTML_NET;
 public class ByteBuffer
 {
     public long Length { get; }
+    public long Position { get; private set; }
 
     private readonly byte[] _data;
-    private long _position;
 
     public ByteBuffer(byte[] data)
     {
-        _position = 0;
+        Position = 0;
         Length = data.Length;
         _data = data;
     }
@@ -36,7 +36,7 @@ public class ByteBuffer
     public byte PeekByte(int offset = 0)
     {
         AssertRead();
-        return _data[_position + offset];
+        return _data[Position + offset];
     }
 
     [Pure]
@@ -44,27 +44,27 @@ public class ByteBuffer
     {
         AssertRead(count);
         var result = new byte[count];
-        Array.Copy(_data, _position, result, 0, count);
+        Array.Copy(_data, Position, result, 0, count);
         return result;
     }
 
     public void UnreadByte()
     {
-        if (_position <= 0) throw new ArgumentOutOfRangeException(nameof(_position), "Cannot unread byte under position 0");
-        _position--;
+        if (Position <= 0) throw new ArgumentOutOfRangeException(nameof(Position), "Cannot unread byte under position 0");
+        Position--;
     }
 
     public void Skip(int count)
     {
         AssertRead(count);
-        _position += count;
+        Position += count;
     }
 
     [Pure]
     public byte ReadByte()
     {
         AssertRead();
-        return _data[_position++];
+        return _data[Position++];
     }
 
     [Pure]
@@ -72,19 +72,19 @@ public class ByteBuffer
     {
         AssertRead(count);
         var result = new byte[count];
-        Array.Copy(_data, _position, result, 0, count);
-        _position += count;
+        Array.Copy(_data, Position, result, 0, count);
+        Position += count;
         return result;
     }
 
     [Pure]
     private bool CanPeekByte(int count)
     {
-        return _position + count <= Length;
+        return Position + count <= Length;
     }
 
     private void AssertRead(int count = 1)
     {
-        if (!CanPeekByte(count)) throw new ArgumentOutOfRangeException(nameof(_position), "Cannot read past the end of the buffer");
+        if (!CanPeekByte(count)) throw new ArgumentOutOfRangeException(nameof(Position), "Cannot read past the end of the buffer");
     }
 }

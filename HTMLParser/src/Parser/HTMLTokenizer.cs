@@ -210,6 +210,7 @@ public partial class HTMLTokenizer
         // TODO: Implement an elegant way to populate the token data
         token.Data = string.Empty;
         token.Data += data;
+        token.Position = _buffer.Position;
 
         _nextToken = token;
         _currentTokens.Remove(typeof(T));
