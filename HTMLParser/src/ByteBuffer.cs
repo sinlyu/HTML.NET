@@ -1,9 +1,12 @@
-﻿using System.Text;
+﻿using System.Diagnostics.Contracts;
+using System.Text;
 
 namespace HTML_NET;
 
 public class ByteBuffer
 {
+    public long Length { get; }
+
     private readonly byte[] _data;
     private long _position;
 
@@ -13,14 +16,14 @@ public class ByteBuffer
         Length = data.Length;
         _data = data;
     }
-
-    public long Length { get; }
-
+    
+    [Pure]
     public bool IsEndOfBuffer()
     {
         return !CanPeekByte(1);
     }
 
+    [Pure]
     public bool MatchCaseInsensitiveString(string word)
     {
         UnreadByte();
@@ -29,12 +32,14 @@ public class ByteBuffer
         return string.Equals(str, word, StringComparison.OrdinalIgnoreCase);
     }
 
+    [Pure]
     public byte PeekByte(int offset = 0)
     {
         ValidateRead();
         return _data[_position + offset];
     }
 
+    [Pure]
     public byte[] PeekBytes(int count)
     {
         ValidateRead(count);
@@ -49,12 +54,14 @@ public class ByteBuffer
         _position--;
     }
 
+    [Pure]
     public byte ReadByte()
     {
         ValidateRead();
         return _data[_position++];
     }
 
+    [Pure]
     public byte[] ReadBytes(int count)
     {
         ValidateRead(count);
@@ -64,6 +71,7 @@ public class ByteBuffer
         return result;
     }
 
+    [Pure]
     private bool CanPeekByte(int count)
     {
         return _position + count <= Length;
