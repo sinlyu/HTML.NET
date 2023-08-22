@@ -11,6 +11,8 @@ public partial class HTMLTokenizer
     private HTMLToken? _nextToken;
 
     private bool _reconsume;
+    
+    // _returnState is not used yet
     private HtmlTokenizerState _returnState;
 
     public HTMLTokenizer(ByteBuffer buffer)
@@ -31,7 +33,6 @@ public partial class HTMLTokenizer
     public HTMLToken? NextToken()
     {
         // TODO: Implement method to check if input is at its end
-        
         while (!_buffer.IsEndOfBuffer())
         {
             var currentInputCharacter = NextCodePoint();
