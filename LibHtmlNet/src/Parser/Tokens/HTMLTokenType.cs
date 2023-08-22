@@ -1,4 +1,4 @@
-﻿namespace LibHtmlNet.Parser;
+﻿namespace LibHtmlNet.Parser.Tokens;
 
 public enum HTMLTokenType
 {

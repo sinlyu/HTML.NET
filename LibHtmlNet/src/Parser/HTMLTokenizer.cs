@@ -8,30 +8,36 @@ public partial class HTMLTokenizer
     private readonly ByteBuffer _buffer;
     private readonly Dictionary<Type, HTMLToken> _currentTokens;
 
-    private readonly List<HTMLToken> _tokens;
-
-    private HtmlTokenizerState _currentState = HtmlTokenizerState.Data;
+    private HtmlTokenizerState _currentState;
 
     private bool _reconsume;
-    private HtmlTokenizerState _returnState = HtmlTokenizerState.Data;
+    private HtmlTokenizerState _returnState;
+    private HTMLToken? _nextToken;
 
     public HTMLTokenizer(ByteBuffer buffer)
     {
         _buffer = buffer;
-        _tokens = new List<HTMLToken>(1000);
         _currentTokens = new Dictionary<Type, HTMLToken>();
+        _currentState = HtmlTokenizerState.Data;
+        _returnState = HtmlTokenizerState.Data;
     }
 
-    public IEnumerable<HTMLToken> Tokenize()
+    public HTMLToken? NextToken()
     {
-        _currentState = HtmlTokenizerState.Data;
         while (!_buffer.IsEndOfBuffer())
         {
             var currentInputCharacter = NextCodePoint();
             HandleStateTransition(currentInputCharacter);
+
+            // We just continue if we dont have a token yet
+            if (!HasNextToken()) continue;
+
+            var token = _nextToken;
+            _nextToken = null;
+            return token;
         }
 
-        return _tokens;
+        return null;
     }
 
     private void HandleStateTransition(byte currentInputCharacter)
@@ -173,6 +179,11 @@ public partial class HTMLTokenizer
     {
         for (var i = 0; i < count; i++) Consume();
     }
+    
+    private bool HasNextToken()
+    {
+        return _nextToken != null;
+    }
 
     private void EmitToken<T>() where T : HTMLToken, new()
     {
@@ -192,7 +203,7 @@ public partial class HTMLTokenizer
         token.Data.Clear();
         token.Data.AddRange(data);
 
-        _tokens.Add(token);
+        _nextToken = token;
         _currentTokens.Remove(typeof(T));
     }
 
