@@ -1,6 +1,4 @@
-﻿using LibHtmlNet.Tokens;
-
-namespace LibHtmlNet.Parser.Tokens;
+﻿namespace HTML_NET.Parser.Tokens;
 
 public class EndTagToken : TagToken
 {

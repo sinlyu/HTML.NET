@@ -1,8 +1,7 @@
 ﻿using System.Text;
-using LibHtmlNet.Parser.Tokens;
-using LibHtmlNet.Tokens;
+using HTML_NET.Parser.Tokens;
 
-namespace LibHtmlNet.Parser;
+namespace HTML_NET.Parser;
 
 public partial class HTMLTokenizer
 {
@@ -38,6 +37,7 @@ public partial class HTMLTokenizer
         CommentLessThanSignBang,
         CommentLessThanSignBangDashDash
     }
+
     private void DataState(byte currentInputCharacter)
     {
         switch (currentInputCharacter)

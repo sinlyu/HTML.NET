@@ -1,7 +1,6 @@
-﻿using LibHtmlNet.Parser.Tokens;
-using LibHtmlNet.Tokens;
+﻿using HTML_NET.Parser.Tokens;
 
-namespace LibHtmlNet.Parser;
+namespace HTML_NET.Parser;
 
 public partial class HTMLTokenizer
 {
@@ -9,10 +8,10 @@ public partial class HTMLTokenizer
     private readonly Dictionary<Type, HTMLToken> _currentTokens;
 
     private HtmlTokenizerState _currentState;
+    private HTMLToken? _nextToken;
 
     private bool _reconsume;
     private HtmlTokenizerState _returnState;
-    private HTMLToken? _nextToken;
 
     public HTMLTokenizer(ByteBuffer buffer)
     {
@@ -143,13 +142,14 @@ public partial class HTMLTokenizer
         // TODO: Work with char instead of byte
         // Normalize newlines to \n
         // https://infra.spec.whatwg.org/#normalize-newlines
-        
+
         byte codePoint;
-        if (_buffer.PeekByte(0) == 0x0D && _buffer.PeekByte(1) == 0x0A)
+        if (_buffer.PeekByte() == 0x0D && _buffer.PeekByte(1) == 0x0A)
         {
             Skip(2);
             codePoint = 0x0A;
-        } else if (_buffer.PeekByte(0) == 0x0D)
+        }
+        else if (_buffer.PeekByte() == 0x0D)
         {
             Skip(1);
             codePoint = 0x0A;
@@ -179,7 +179,7 @@ public partial class HTMLTokenizer
     {
         for (var i = 0; i < count; i++) Consume();
     }
-    
+
     private bool HasNextToken()
     {
         return _nextToken != null;

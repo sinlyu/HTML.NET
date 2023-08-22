@@ -1,7 +1,4 @@
-﻿using LibHtmlNet.Parser;
-using LibHtmlNet.Parser.Tokens;
-
-namespace LibHtmlNet.Tokens;
+﻿namespace HTML_NET.Parser.Tokens;
 
 public class TagToken : HTMLToken
 {

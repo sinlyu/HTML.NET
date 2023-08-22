@@ -1,6 +1,4 @@
-﻿using LibHtmlNet.Tokens;
-
-namespace LibHtmlNet.Parser.Tokens;
+﻿using HTML_NET.Parser.Tokens;
 
 public class StartTagToken : TagToken
 {

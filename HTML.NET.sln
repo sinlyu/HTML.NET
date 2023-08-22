@@ -1,6 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LibHtmlNet", "LibHtmlNet\LibHtmlNet.csproj", "{7FB1FEF4-815D-428C-AC44-08E504033AAB}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HTMLParser", "HTMLParser\HTMLParser.csproj", "{7FB1FEF4-815D-428C-AC44-08E504033AAB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTests", "UnitTests\UnitTests.csproj", "{BC3A99F4-8CBE-4A4A-9557-591E3A68CC2F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -12,5 +14,9 @@ Global
 		{7FB1FEF4-815D-428C-AC44-08E504033AAB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7FB1FEF4-815D-428C-AC44-08E504033AAB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7FB1FEF4-815D-428C-AC44-08E504033AAB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BC3A99F4-8CBE-4A4A-9557-591E3A68CC2F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BC3A99F4-8CBE-4A4A-9557-591E3A68CC2F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BC3A99F4-8CBE-4A4A-9557-591E3A68CC2F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BC3A99F4-8CBE-4A4A-9557-591E3A68CC2F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
