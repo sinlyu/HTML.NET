@@ -2,20 +2,22 @@
 
 public abstract class HTMLToken
 {
-    private HTMLToken(HTMLTokenType type, List<byte> data)
+    private HTMLToken(HTMLTokenType type, string data)
     {
         Type = type;
         Data = data;
     }
 
-    protected HTMLToken(HTMLTokenType type) : this(type, new List<byte>())
+    protected HTMLToken(HTMLTokenType type) : this(type, string.Empty)
     {
     }
 
-    protected HTMLToken() : this(HTMLTokenType.Invalid, new List<byte>())
+    protected HTMLToken() : this(HTMLTokenType.Invalid, string.Empty)
     {
     }
 
     public HTMLTokenType Type { get; protected set; }
-    public List<byte> Data { get; protected set; }
+    
+    // TODO: Instead of string we could use a StringBuilder
+    public string Data { get; set; }
 }

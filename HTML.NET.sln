@@ -4,6 +4,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HTMLParser", "HTMLParser\HT
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTests", "UnitTests\UnitTests.csproj", "{BC3A99F4-8CBE-4A4A-9557-591E3A68CC2F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExampleApp", "ExampleApp\ExampleApp.csproj", "{B17EFC37-BB7B-429F-99CB-70287C343B42}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,5 +20,9 @@ Global
 		{BC3A99F4-8CBE-4A4A-9557-591E3A68CC2F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BC3A99F4-8CBE-4A4A-9557-591E3A68CC2F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BC3A99F4-8CBE-4A4A-9557-591E3A68CC2F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B17EFC37-BB7B-429F-99CB-70287C343B42}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B17EFC37-BB7B-429F-99CB-70287C343B42}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B17EFC37-BB7B-429F-99CB-70287C343B42}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B17EFC37-BB7B-429F-99CB-70287C343B42}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

@@ -24,9 +24,9 @@ public class TagToken : HTMLToken
         Attributes.Add(_currentAttribute.Key, _currentAttribute.Value);
     }
 
-    public void NewAttribute(byte name)
+    public void NewAttribute(char name)
     {
-        NewAttribute(new string((char)name, 1));
+        NewAttribute(new string(name, 1));
     }
 
     public void AddAttributeName(string value)
@@ -35,9 +35,9 @@ public class TagToken : HTMLToken
         Attributes.Add(_currentAttribute.Key, _currentAttribute.Value);
     }
 
-    public void AddAttributeName(byte value)
+    public void AddAttributeName(char value)
     {
-        AddAttributeName(new string((char)value, 1));
+        AddAttributeName(new string(value, 1));
     }
 
     public void AddAttributeValue(string value)
@@ -46,8 +46,8 @@ public class TagToken : HTMLToken
         _currentAttribute = new KeyValuePair<string, string>(_currentAttribute.Key, Attributes[_currentAttribute.Key]);
     }
 
-    public void AddAttributeValue(byte value)
+    public void AddAttributeValue(char value)
     {
-        AddAttributeValue(new string((char)value, 1));
+        AddAttributeValue(new string(value, 1));
     }
 }

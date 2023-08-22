@@ -49,7 +49,7 @@ public partial class HTMLTokenizer
         return null;
     }
 
-    private void HandleStateTransition(byte currentInputCharacter)
+    private void HandleStateTransition(char currentInputCharacter)
     {
         switch (_currentState)
         {
@@ -137,7 +137,7 @@ public partial class HTMLTokenizer
                 CommentLessThanSignBangDashDashState(currentInputCharacter);
                 break;
             default:
-                throw new ArgumentOutOfRangeException();
+                throw new ArgumentOutOfRangeException(nameof(_currentState), "Unknown state");
         }
     }
 
@@ -147,32 +147,31 @@ public partial class HTMLTokenizer
         _reconsume = reconsume;
     }
 
-    private byte NextCodePoint()
+    private char NextCodePoint()
     {
         // TODO: Work with char instead of byte
         // Normalize newlines to \n
         // https://infra.spec.whatwg.org/#normalize-newlines
 
-        byte codePoint;
-        if (_buffer.PeekByte() == 0x0D && _buffer.PeekByte(1) == 0x0A)
+        char codePoint;
+        if (_buffer.PeekByte() == '\r' && _buffer.PeekByte(1) == '\n')
         {
             Skip(2);
-            codePoint = 0x0A;
+            codePoint = '\n';
         }
-        else if (_buffer.PeekByte() == 0x0D)
+        else if (_buffer.PeekByte() == '\r')
         {
             Skip(1);
-            codePoint = 0x0A;
+            codePoint = '\n';
         }
         else
         {
-            codePoint = Consume();
+            codePoint = (char)Consume();
         }
 
         return codePoint;
     }
 
-    // Consume the next byte from the buffer
     private byte Consume()
     {
         if (!_reconsume) return _buffer.ReadByte();
@@ -183,12 +182,10 @@ public partial class HTMLTokenizer
         return _buffer.ReadByte();
     }
 
-    // We need a method like Consume but with a parameter to specify how many bytes we want to consume
-    // This method is used after peeking ahead and we are sure we want to consume the bytes
-    // But we already know whats inside so we dont need the actual bytes
     private void Skip(int count)
     {
-        for (var i = 0; i < count; i++) Consume();
+        _buffer.Skip(count);
+        _reconsume = false;
     }
 
     private bool HasNextToken()
@@ -198,21 +195,21 @@ public partial class HTMLTokenizer
 
     private void EmitToken<T>() where T : HTMLToken, new()
     {
-        EmitToken<T>(Array.Empty<byte>());
+        EmitToken<T>(string.Empty);
     }
 
-    private void EmitToken<T>(byte currentInputCharacter) where T : HTMLToken, new()
+    private void EmitToken<T>(char currentInputCharacter) where T : HTMLToken, new()
     {
-        EmitToken<T>(new[] { currentInputCharacter });
+        EmitToken<T>(currentInputCharacter.ToString());
     }
 
-    private void EmitToken<T>(IEnumerable<byte> data) where T : HTMLToken, new()
+    private void EmitToken<T>(string data) where T : HTMLToken, new()
     {
         var token = CurrentToken<T>();
 
         // TODO: Implement an elegant way to populate the token data
-        token.Data.Clear();
-        token.Data.AddRange(data);
+        token.Data = string.Empty;
+        token.Data += data;
 
         _nextToken = token;
         _currentTokens.Remove(typeof(T));

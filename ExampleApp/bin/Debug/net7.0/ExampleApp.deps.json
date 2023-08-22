@@ -1,0 +1,36 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v7.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v7.0": {
+      "ExampleApp/1.0.0": {
+        "dependencies": {
+          "HTMLParser": "1.0.0"
+        },
+        "runtime": {
+          "ExampleApp.dll": {}
+        }
+      },
+      "HTMLParser/1.0.0": {
+        "runtime": {
+          "HTMLParser.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "ExampleApp/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "HTMLParser/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

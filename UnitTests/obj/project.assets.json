@@ -381,6 +381,16 @@
             "related": ".xml"
           }
         }
+      },
+      "HTMLParser/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v7.0",
+        "compile": {
+          "bin/placeholder/HTMLParser.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/HTMLParser.dll": {}
+        }
       }
     }
   },
@@ -975,10 +985,16 @@
         "useSharedDesignerContext.txt",
         "version.txt"
       ]
+    },
+    "HTMLParser/1.0.0": {
+      "type": "project",
+      "path": "../HTMLParser/HTMLParser.csproj",
+      "msbuildProject": "../HTMLParser/HTMLParser.csproj"
     }
   },
   "projectFileDependencyGroups": {
     "net7.0": [
+      "HTMLParser >= 1.0.0",
       "Microsoft.NET.Test.Sdk >= 17.5.0",
       "NUnit >= 3.13.3",
       "NUnit.Analyzers >= 3.6.1",
@@ -1019,7 +1035,11 @@
       "frameworks": {
         "net7.0": {
           "targetAlias": "net7.0",
-          "projectReferences": {}
+          "projectReferences": {
+            "E:\\projects\\LibHtmlNet\\HTMLParser\\HTMLParser.csproj": {
+              "projectPath": "E:\\projects\\LibHtmlNet\\HTMLParser\\HTMLParser.csproj"
+            }
+          }
         }
       },
       "warningProperties": {

@@ -35,14 +35,14 @@ public class ByteBuffer
     [Pure]
     public byte PeekByte(int offset = 0)
     {
-        ValidateRead();
+        AssertRead();
         return _data[_position + offset];
     }
 
     [Pure]
     public byte[] PeekBytes(int count)
     {
-        ValidateRead(count);
+        AssertRead(count);
         var result = new byte[count];
         Array.Copy(_data, _position, result, 0, count);
         return result;
@@ -50,21 +50,27 @@ public class ByteBuffer
 
     public void UnreadByte()
     {
-        if (_position <= 0) throw new Exception("Cannot unread byte");
+        if (_position <= 0) throw new ArgumentOutOfRangeException(nameof(_position), "Cannot unread byte under position 0");
         _position--;
+    }
+
+    public void Skip(int count)
+    {
+        AssertRead(count);
+        _position += count;
     }
 
     [Pure]
     public byte ReadByte()
     {
-        ValidateRead();
+        AssertRead();
         return _data[_position++];
     }
 
     [Pure]
     public byte[] ReadBytes(int count)
     {
-        ValidateRead(count);
+        AssertRead(count);
         var result = new byte[count];
         Array.Copy(_data, _position, result, 0, count);
         _position += count;
@@ -77,10 +83,8 @@ public class ByteBuffer
         return _position + count <= Length;
     }
 
-    private void ValidateRead(int count = 1)
+    private void AssertRead(int count = 1)
     {
-        if (!CanPeekByte(count))
-            // TODO: Implement EndOfBufferException or something like that
-            throw new Exception("End of buffer");
+        if (!CanPeekByte(count)) throw new ArgumentOutOfRangeException(nameof(_position), "Cannot read past the end of the buffer");
     }
 }
