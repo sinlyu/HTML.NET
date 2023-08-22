@@ -21,8 +21,17 @@ public partial class HTMLTokenizer
         _returnState = HtmlTokenizerState.Data;
     }
 
+    /// <summary>
+    /// Get the next token or null if there are no more tokens from the buffer.
+    /// There is no method to check if the input reached its end right now, so just check for null.
+    /// </summary>
+    /// <returns>
+    ///  HTMLToken or null if there are no more tokens from the buffer.
+    /// </returns>
     public HTMLToken? NextToken()
     {
+        // TODO: Implement method to check if input is at its end
+        
         while (!_buffer.IsEndOfBuffer())
         {
             var currentInputCharacter = NextCodePoint();
@@ -162,6 +171,7 @@ public partial class HTMLTokenizer
         return codePoint;
     }
 
+    // Consume the next byte from the buffer
     private byte Consume()
     {
         if (!_reconsume) return _buffer.ReadByte();
@@ -214,10 +224,14 @@ public partial class HTMLTokenizer
     {
         // if parent class of token is TagToken, we set type to TagToken
         if (typeof(T).IsSubclassOf(typeof(TagToken))) return CurrentToken<T>(typeof(TagToken));
-
+        
+        // if we already have a token of the specified type, we return it
         if (_currentTokens.TryGetValue(typeof(T), out var value)) return (T)value;
+        
+        // otherwise we create a new token of the specified type
         var token = new T();
         _currentTokens.Add(typeof(T), token);
+        
         return token;
     }
 

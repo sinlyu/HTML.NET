@@ -8,29 +8,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="361e1822-f7d2-41b5-bb5c-3615446aed8d" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/.idea.LibHtmlNet/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.LibHtmlNet/.idea/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.LibHtmlNet/.idea/discord.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.LibHtmlNet/.idea/encodings.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.LibHtmlNet/.idea/git_toolbox_prj.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.LibHtmlNet/.idea/indexLayout.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.LibHtmlNet/.idea/vcs.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/LibHtmlNet.sln" beforeDir="false" afterPath="$PROJECT_DIR$/HTML.NET.sln" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/LibHtmlNet/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/HTMLParser/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/LibHtmlNet/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/HTMLParser/Dockerfile" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/LibHtmlNet/LibHtmlNet.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/HTMLParser/HTMLParser.csproj" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/LibHtmlNet/src/ByteBuffer.cs" beforeDir="false" afterPath="$PROJECT_DIR$/HTMLParser/src/ByteBuffer.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/LibHtmlNet/src/Parser/HTMLTokenizer.States.cs" beforeDir="false" afterPath="$PROJECT_DIR$/HTMLParser/src/Parser/HTMLTokenizer.States.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/LibHtmlNet/src/Parser/HTMLTokenizer.cs" beforeDir="false" afterPath="$PROJECT_DIR$/HTMLParser/src/Parser/HTMLTokenizer.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/LibHtmlNet/src/Parser/Tokens/CharacterToken.cs" beforeDir="false" afterPath="$PROJECT_DIR$/HTMLParser/src/Parser/Tokens/CharacterToken.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/LibHtmlNet/src/Parser/Tokens/CommentToken.cs" beforeDir="false" afterPath="$PROJECT_DIR$/HTMLParser/src/Parser/Tokens/CommentToken.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/LibHtmlNet/src/Parser/Tokens/DOCTYPEToken.cs" beforeDir="false" afterPath="$PROJECT_DIR$/HTMLParser/src/Parser/Tokens/DOCTYPEToken.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/LibHtmlNet/src/Parser/Tokens/EndTagToken.cs" beforeDir="false" afterPath="$PROJECT_DIR$/HTMLParser/src/Parser/Tokens/EndTagToken.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/LibHtmlNet/src/Parser/Tokens/HTMLToken.cs" beforeDir="false" afterPath="$PROJECT_DIR$/HTMLParser/src/Parser/Tokens/HTMLToken.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/LibHtmlNet/src/Parser/Tokens/HTMLTokenType.cs" beforeDir="false" afterPath="$PROJECT_DIR$/HTMLParser/src/Parser/Tokens/HTMLTokenType.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/LibHtmlNet/src/Parser/Tokens/StartTagToken.cs" beforeDir="false" afterPath="$PROJECT_DIR$/HTMLParser/src/Parser/Tokens/StartTagToken.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/LibHtmlNet/src/Parser/Tokens/TagToken.cs" beforeDir="false" afterPath="$PROJECT_DIR$/HTMLParser/src/Parser/Tokens/TagToken.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/LibHtmlNet/src/Program.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/.idea.LibHtmlNet/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.LibHtmlNet/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/HTMLParser/src/ByteBuffer.cs" beforeDir="false" afterPath="$PROJECT_DIR$/HTMLParser/src/ByteBuffer.cs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -67,27 +46,28 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "WebServerToolWindowFactoryState": "false",
+    "git-widget-placeholder": "master",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "preferences.pluginManager",
+    "vue.rearranger.settings.migration": "true"
   },
-  &quot;keyToStringList&quot;: {
-    &quot;rider.external.source.directories&quot;: [
-      &quot;C:\\Users\\Uther\\AppData\\Roaming\\JetBrains\\Rider2023.2\\resharper-host\\DecompilerCache&quot;,
-      &quot;C:\\Users\\Uther\\AppData\\Roaming\\JetBrains\\Rider2023.2\\resharper-host\\SourcesCache&quot;,
-      &quot;C:\\Users\\Uther\\AppData\\Local\\Symbols\\src&quot;
+  "keyToStringList": {
+    "rider.external.source.directories": [
+      "C:\\Users\\Uther\\AppData\\Roaming\\JetBrains\\Rider2023.2\\resharper-host\\DecompilerCache",
+      "C:\\Users\\Uther\\AppData\\Roaming\\JetBrains\\Rider2023.2\\resharper-host\\SourcesCache",
+      "C:\\Users\\Uther\\AppData\\Local\\Symbols\\src"
     ]
   }
-}</component>
+}]]></component>
   <component name="RunManager" selected=".NET Project.LibHtmlNet">
     <configuration name="LibHtmlNet" type="DotNetProject" factoryName=".NET Project">
       <option name="EXE_PATH" value="" />
@@ -139,7 +119,7 @@
       <workItem from="1692648989898" duration="2531000" />
       <workItem from="1692691349249" duration="8309000" />
       <workItem from="1692717986501" duration="685000" />
-      <workItem from="1692725960906" duration="5468000" />
+      <workItem from="1692725960906" duration="6116000" />
     </task>
     <task id="LOCAL-00001" summary="Some refactoring, added HTMLTokenType.cs and removed the State enum as a single file.">
       <option name="closed" value="true" />

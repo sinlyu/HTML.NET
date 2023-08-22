@@ -18,7 +18,7 @@ public class ByteBuffer
 
     public bool IsEndOfBuffer()
     {
-        return !CanPeek(1);
+        return !CanPeekByte(1);
     }
 
     public bool MatchCaseInsensitiveString(string word)
@@ -64,14 +64,14 @@ public class ByteBuffer
         return result;
     }
 
-    private bool CanPeek(int count)
+    private bool CanPeekByte(int count)
     {
         return _position + count <= Length;
     }
 
     private void ValidateRead(int count = 1)
     {
-        if (!CanPeek(count))
+        if (!CanPeekByte(count))
             // TODO: Implement EndOfBufferException or something like that
             throw new Exception("End of buffer");
     }
