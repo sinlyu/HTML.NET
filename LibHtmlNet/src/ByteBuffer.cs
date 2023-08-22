@@ -1,40 +1,40 @@
-﻿using System.Net;
-using System.Text;
+﻿using System.Text;
 
 namespace LibHtmlNet;
 
 public class ByteBuffer
 {
-    private long _position;
-    
     private readonly byte[] _data;
-    public long Length { get; }
-    
+    private long _position;
+
     public ByteBuffer(byte[] data)
     {
         _position = 0;
         Length = data.Length;
         _data = data;
     }
-    
-    public static ByteBuffer FromFile(string path) => new (File.ReadAllBytes(path));
 
-    public static ByteBuffer FromWebsite(string url)
+    public long Length { get; }
+
+    public bool IsEndOfBuffer()
     {
-        var httpClient = new HttpClient();
-        httpClient.GetAsync(new Uri(url)).Wait();
-        var response = httpClient.GetByteArrayAsync(new Uri(url)).Result;
-        return new ByteBuffer(response);
+        return !CanPeek(1);
     }
-    
-    private bool CanPeek(int count) => _position + count <= Length;
-    
-    public byte PeekByte()
+
+    public bool MatchCaseInsensitiveString(string word)
+    {
+        UnreadByte();
+        var bytes = PeekBytes(word.Length);
+        var str = Encoding.UTF8.GetString(bytes);
+        return string.Equals(str, word, StringComparison.OrdinalIgnoreCase);
+    }
+
+    public byte PeekByte(int offset = 0)
     {
         ValidateRead();
-        return _data[_position];
+        return _data[_position + offset];
     }
-    
+
     public byte[] PeekBytes(int count)
     {
         ValidateRead(count);
@@ -43,30 +43,12 @@ public class ByteBuffer
         return result;
     }
 
-    public bool IsEndOfBuffer() => !CanPeek(1);
-    private void ValidateRead(int count = 1)
-    {
-        if (CanPeek(count)) return;
-        // TODO: Implement EndOfBufferException or something like that
-        throw new Exception("End of buffer");
-    }
-
-    public bool MatchCaseInsensitiveString(string word)
-    {
-        UnreadByte();
-        var count = word.Length;
-        var bytes = PeekBytes(count);
-        var str = Encoding.UTF8.GetString(bytes);
-        return string.Equals(str, word, StringComparison.OrdinalIgnoreCase);
-    }
-    
     public void UnreadByte()
     {
-        // TODO: Implement BufferUnderflowException or something like that
         if (_position <= 0) throw new Exception("Cannot unread byte");
         _position--;
     }
-    
+
     public byte ReadByte()
     {
         ValidateRead();
@@ -80,5 +62,17 @@ public class ByteBuffer
         Array.Copy(_data, _position, result, 0, count);
         _position += count;
         return result;
+    }
+
+    private bool CanPeek(int count)
+    {
+        return _position + count <= Length;
+    }
+
+    private void ValidateRead(int count = 1)
+    {
+        if (!CanPeek(count))
+            // TODO: Implement EndOfBufferException or something like that
+            throw new Exception("End of buffer");
     }
 }

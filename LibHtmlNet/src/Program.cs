@@ -1,5 +1,7 @@
 ﻿using LibHtmlNet;
+using LibHtmlNet.Parser;
 
-var byteBuffer = ByteBuffer.FromFile("/home/utherali/RiderProjects/LibHtmlNet/Tests/html_basic_document.html");
-var tokenizer = new HtmlTokenizer(byteBuffer);
-tokenizer.Tokenize();
+var byteBuffer = new ByteBuffer(File.ReadAllBytes(@"E:\projects\LibHtmlNet\Tests\html_basic_document.html"));
+var tokenizer = new HTMLTokenizer(byteBuffer);
+
+var tokens = tokenizer.Tokenize();
