@@ -221,7 +221,6 @@ public partial class HTMLTokenizer
     {
         var token = CurrentToken<T>();
         token.Data.Append(data);
-        token.Position = _buffer.Position;
 
         _nextToken = token;
         _currentTokens.Remove(typeof(T));
@@ -240,6 +239,9 @@ public partial class HTMLTokenizer
 
         // otherwise we create a new token of the specified type
         var token = new T();
+        
+        // FIXME: I think Position - 1 is correct here, but I'm not sure
+        token.Position = _buffer.Position;
         _currentTokens.Add(typeof(T), token);
 
         return token;
