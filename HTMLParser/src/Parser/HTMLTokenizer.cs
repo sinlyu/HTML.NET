@@ -149,7 +149,7 @@ public partial class HTMLTokenizer
                 throw new NotImplementedException("NumericCharacterReferenceState not implemented yet");
                 break;
             case HtmlTokenizerState.AmbiguousAmpersand:
-                throw new NotImplementedException("AmbiguousAmpersandState not implemented yet");
+                AmbiguousAmpersandState(currentInputCharacter);
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(_currentState), "Unknown state");

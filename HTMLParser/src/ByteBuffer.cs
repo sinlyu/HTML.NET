@@ -26,6 +26,7 @@ public class ByteBuffer
     [Pure]
     public byte[] PeekRemainingBytes()
     {
+        UnreadByte();
         return PeekBytes((int)(Length - Position));
     }
 

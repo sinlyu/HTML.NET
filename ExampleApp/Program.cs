@@ -5,11 +5,13 @@ using HTML_NET.Parser.Tokens;
 // TODO: <div x= y="a"></div> breaks the tokenizer currently because AttributeValueUnquotedState is not implemented yet
 
 var tokenizer =
-    new HTMLTokenizer(new ByteBuffer(File.ReadAllBytes(@"/home/utherali/RiderProjects/HTML.NET/Tests/html_basic_document.html")));
+    new HTMLTokenizer(new ByteBuffer(File.ReadAllBytes(@"E:\projects\LibHtmlNet\Tests\html_basic_document.html")));
+
+var tokens = new List<HTMLToken>();
+
 while (tokenizer.NextToken() is { } token)
 {
-    if (token.Type == HTMLTokenType.Character)
-    {
-        Console.WriteLine(token.Data);
-    }
+    tokens.Add(token);
 }
+
+var x = 0;

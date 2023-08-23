@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Drawing;
+using System.Text;
 using HTML_NET.Parser.Tokens;
 
 namespace HTML_NET.Parser;
@@ -885,6 +886,7 @@ public partial class HTMLTokenizer
         }
     }
 
+    
     private void CharacterReferenceState(char currentInputCharacter)
     {
         _temporaryBuffer.Clear();
@@ -936,7 +938,7 @@ public partial class HTMLTokenizer
             // and the next input character is either a U+003D EQUALS SIGN character (=) or an ASCII alphanumeric,
             // then, for historical reasons, flush code points consumed as a character reference and switch to the return state.
 
-            Skip(match.Entity.Length - 1);
+            Skip(match.Entity.Length);
             foreach (var ch in match.Entity)
                 _temporaryBuffer.Append(ch);
 
@@ -962,6 +964,40 @@ public partial class HTMLTokenizer
         }
     }
 
+    private void AmbiguousAmpersandState(char currentInputCharacter)
+    {
+        switch (currentInputCharacter)
+        {
+            // If the character reference was consumed as part of an attribute,
+            // then append the current input character to the current attribute's value.
+            // Otherwise, emit the current input character as a character token.
+            case >= 'A' and <= 'Z': // A-Z
+            case >= 'a' and <= 'z': // a-z
+            case >= '0' and <= '9': // 0-9
+                if (ConsumedAsPartOfAnAttribute())
+                {
+                    CurrentToken<TagToken>().AddAttributeValue(currentInputCharacter);
+                }
+                else
+                {
+                    CurrentToken<CharacterToken>().Data.Clear();
+                    CurrentToken<CharacterToken>().Data.Append(currentInputCharacter);
+                    EmitToken<CharacterToken>();
+                }
+                break;
+            
+            // This is an unknown-named-character-reference parse error. Reconsume in the return state.
+            case ';':
+                LogParseError("unknown-named-character-reference", CurrentToken<CharacterToken>());
+                SwitchState(_returnState, reconsume: true);
+                break;
+            
+            // Reconsume in the return state.
+            default:
+                SwitchState(_returnState, reconsume: true);
+                break;
+        }
+    }
 
     // 13.2.5.47 Comment less-than sign bang state
     // https://html.spec.whatwg.org/multipage/parsing.html#comment-less-than-sign-bang-state
@@ -1071,18 +1107,28 @@ public partial class HTMLTokenizer
         // Each code point in the temporary buffer (in the order they were added to the buffer )
         // user agent must append to the code point from the buffer to the current attribute's value
         // if the character reference was consumed as part of an attribute, or emit the code point as a character token otherwise.
-
-        // TODO: Implement consumed as part of an attribute
-
-        foreach (var codePoint in _temporaryBuffer.ToString())
+        if (ConsumedAsPartOfAnAttribute())
         {
-            CurrentToken<CharacterToken>().Data.Append(codePoint);
+            CurrentToken<TagToken>().AddAttributeValue(_temporaryBuffer.ToString());
+        }
+        else
+        {
+            CurrentToken<CharacterToken>().Data.Append(_temporaryBuffer);
             EmitToken<CharacterToken>();
         }
+        _temporaryBuffer.Clear();
+    }
+
+    private bool ConsumedAsPartOfAnAttribute()
+    {
+        return _returnState is 
+            HtmlTokenizerState.AttributeValueDoubleQuoted or
+            HtmlTokenizerState.AttributeValueSingleQuoted or 
+            HtmlTokenizerState.AttributeValueUnquoted;
     }
 
     private void LogParseError(string reason, HTMLToken token)
     {
-        Console.WriteLine("ParseError: " + reason + " at " + token.Position + " in " + token.GetType().Name + "");
+        Console.WriteLine($"\u001b[33mParse error\u001b[0m: \u001b[34m{reason}\u001b[0m at \u001b[34m{token.Position}\u001b[0m");
     }
 }
