@@ -242,6 +242,7 @@ public partial class HTMLTokenizer
         
         // FIXME: I think Position - 1 is correct here, but I'm not sure
         token.Position = _buffer.Position;
+        
         _currentTokens.Add(typeof(T), token);
 
         return token;

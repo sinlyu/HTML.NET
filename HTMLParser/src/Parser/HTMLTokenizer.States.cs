@@ -267,6 +267,7 @@ public partial class HTMLTokenizer
             // This is an unexpected-null-character parse error.
             // Append a U+FFFD REPLACEMENT CHARACTER character to the current attribute's name.
             case '\0': // NULL
+                LogParseError("unexpected-null-character", CurrentToken<CharacterToken>());
                 CurrentToken<StartTagToken>().AddAttributeName("\uFFFD");
                 break;
 
@@ -276,8 +277,11 @@ public partial class HTMLTokenizer
             case '\'': // '
             case '<': // <
                 LogParseError("unexpected-character-in-attribute-name", CurrentToken<CharacterToken>());
+                CurrentToken<StartTagToken>().AddAttributeName(currentInputCharacter);
                 break;
-            // https://html.spec.whatwg.org/multipage/parsing.html#attribute-name-state
+            
+            // Anything else
+            // Append the current input character to the current attribute's name.
             default:
                 CurrentToken<StartTagToken>().AddAttributeName(currentInputCharacter);
                 break;
@@ -1080,6 +1084,13 @@ public partial class HTMLTokenizer
             // Switch to the before attribute value state.
             case '=': // =
                 SwitchState(HtmlTokenizerState.BeforeAttributeValue);
+                break;
+            
+            // Switch to the data state.
+            // Emit the current tag token.
+            case '>': // >
+                SwitchState(HtmlTokenizerState.Data);
+                EmitToken<TagToken>();
                 break;
 
             // Anything else
