@@ -60,10 +60,8 @@ public partial class HTMLTokenizer
             case '\0':
                 var token = CurrentToken<CharacterToken>();
                 LogParseError("unexpected-null-character", token);
-                
-                // TODO: Implement an elegant way to populate the token data
-                token.Data = string.Empty;
-                token.Data += currentInputCharacter;
+
+                token.Data = currentInputCharacter.ToString();
                 EmitToken<CharacterToken>();
                 break;
 

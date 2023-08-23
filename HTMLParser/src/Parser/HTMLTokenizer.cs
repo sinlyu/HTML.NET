@@ -149,7 +149,6 @@ public partial class HTMLTokenizer
 
     private char NextCodePoint()
     {
-        // TODO: Work with char instead of byte
         // Normalize newlines to \n
         // https://infra.spec.whatwg.org/#normalize-newlines
 
@@ -206,10 +205,7 @@ public partial class HTMLTokenizer
     private void EmitToken<T>(string data) where T : HTMLToken, new()
     {
         var token = CurrentToken<T>();
-
-        // TODO: Implement an elegant way to populate the token data
-        token.Data = string.Empty;
-        token.Data += data;
+        token.Data = data;
         token.Position = _buffer.Position;
 
         _nextToken = token;
