@@ -1,11 +1,13 @@
-﻿namespace HTML_NET.Parser.Tokens;
+﻿using System.Text;
+
+namespace HTML_NET.Parser.Tokens;
 
 public abstract class HTMLToken
 {
     private HTMLToken(HTMLTokenType type, string data)
     {
         Type = type;
-        Data = data;
+        Data = new StringBuilder(data);
     }
 
     protected HTMLToken(HTMLTokenType type) : this(type, string.Empty)
@@ -18,7 +20,5 @@ public abstract class HTMLToken
 
     public HTMLTokenType Type { get; protected set; }
     public long Position { get; set; }
-    
-    // TODO: Instead of string we could use a StringBuilder
-    public string Data { get; set; }
+    public StringBuilder Data { get; set; }
 }

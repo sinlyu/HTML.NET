@@ -35,7 +35,10 @@ public partial class HTMLTokenizer
         CommentEnd,
         CommentEndBang,
         CommentLessThanSignBang,
-        CommentLessThanSignBangDashDash
+        CommentLessThanSignBangDashDash,
+        NamedCharacterReference,
+        NumericCharacterReference,
+        AmbiguousAmpersand
     }
 
     // 13.2.5.1 Data state
@@ -63,7 +66,9 @@ public partial class HTMLTokenizer
                 var token = CurrentToken<CharacterToken>();
                 LogParseError("unexpected-null-character", token);
 
-                token.Data = currentInputCharacter.ToString();
+                token.Data.Clear();
+                token.Data.Append(currentInputCharacter);
+
                 EmitToken<CharacterToken>();
                 break;
 
@@ -525,7 +530,7 @@ public partial class HTMLTokenizer
             // Append the current input character to the comment token's data.
             // Switch to the comment less-than sign state.
             case '<': // <
-                CurrentToken<CommentToken>().Data += currentInputCharacter;
+                CurrentToken<CommentToken>().Data.Append(currentInputCharacter);
                 SwitchState(HtmlTokenizerState.CommentLessThanSign);
                 break;
 
@@ -537,17 +542,105 @@ public partial class HTMLTokenizer
             // This is an unexpected-null-character parse error.
             // Append a U+FFFD REPLACEMENT CHARACTER character to the comment token's data.
             case '\0': // NULL
-                CurrentToken<CommentToken>().Data += "\uFFFD";
+                CurrentToken<CommentToken>().Data.Append('\uFFFD');
                 break;
 
             // Anything else
             // Append the current input character to the comment token's data.
             default:
-                CurrentToken<CommentToken>().Data += currentInputCharacter;
+                CurrentToken<CommentToken>().Data.Append(currentInputCharacter);
                 break;
         }
 
         // TODO: Implement EOF handling
+    }
+
+    private void AttributeValueUnquotedState(char currentInputCharacter)
+    {
+        switch (currentInputCharacter)
+        {
+            // Switch to the before attribute name state.
+            case '\t': // \t
+            case '\n': // \n
+            case '\f': // \f
+            case ' ': // space
+                SwitchState(HtmlTokenizerState.BeforeAttributeName);
+                break;
+            
+            // Set the return state to the attribute value (unquoted) state.
+            // Switch to the character reference state.
+            case '&':
+                _returnState = HtmlTokenizerState.AttributeValueUnquoted;
+                SwitchState(HtmlTokenizerState.CharacterReference);
+                break;
+            
+            // Switch to the data state.
+            // Emit the current tag token.
+            case '>':
+                SwitchState(HtmlTokenizerState.Data);
+                EmitToken<TagToken>();
+                break;
+            
+            // This is an unexpected-null-character parse error.
+            // Append a U+FFFD REPLACEMENT CHARACTER character to the current attribute's value.
+            case '\0':
+                LogParseError("unexpected-null-character", CurrentToken<CharacterToken>());
+                CurrentToken<StartTagToken>().AddAttributeValue("\uFFFD");
+                break;
+            
+            // This is an unexpected-character-in-unquoted-attribute-value parse error.
+            // Treat it as per the "anything else" entry below.
+            // Append the current input character to the current attribute's value.
+            case '"':
+            case '\'':
+            case '<':
+            case '=':
+            case '`':
+                LogParseError("unexpected-character-in-unquoted-attribute-value", CurrentToken<CharacterToken>());
+                CurrentToken<StartTagToken>().AddAttributeValue(currentInputCharacter);
+                break;
+            
+            // Anything else
+            // Append the current input character to the current attribute's value.
+            default:
+                CurrentToken<StartTagToken>().AddAttributeValue(currentInputCharacter);
+                break;
+        }
+        
+        // TODO: Implement EOF handling
+    }
+
+    // 13.2.5.37 Attribute value (single-quoted) state
+    // https://html.spec.whatwg.org/multipage/parsing.html#attribute-value-(single-quoted)-state
+    private void AttributeValueSingleQuotedState(char currentInputCharacter)
+    {
+        switch (currentInputCharacter)
+        {
+            // Switch to the after attribute value (quoted) state.
+            case '\'':
+                SwitchState(HtmlTokenizerState.AfterAttributeValueQuoted);
+                break;
+
+            // Set the return state to the attribute value (single-quoted) state.
+            // Switch to the character reference state.
+            case '&':
+                _returnState = HtmlTokenizerState.AttributeValueSingleQuoted;
+                SwitchState(HtmlTokenizerState.CharacterReference);
+                break;
+
+            // This is an unexpected-null-character parse error.
+            // Append a U+FFFD REPLACEMENT CHARACTER character to the current attribute's value.
+            case '\0':
+                LogParseError("unexpected-null-character", CurrentToken<CharacterToken>());
+                CurrentToken<StartTagToken>().AddAttributeValue("\uFFFD");
+                break;
+
+            // Anything else
+            // Append the current input character to the current attribute's value.
+            default:
+                CurrentToken<StartTagToken>().AddAttributeValue(currentInputCharacter);
+                break;
+        }
     }
 
     // 13.2.5.36 Attribute value (double-quoted) state 
@@ -633,7 +726,7 @@ public partial class HTMLTokenizer
             // Append a U+002D HYPHEN-MINUS character (-) to the comment token's data.
             // Reconsume in the comment state.
             default:
-                CurrentToken<CommentToken>().Data += '-';
+                CurrentToken<CommentToken>().Data.Append('-');
                 SwitchState(HtmlTokenizerState.Comment, true);
                 break;
         }
@@ -651,7 +744,7 @@ public partial class HTMLTokenizer
             // Emit the current comment token.
             case '>': // >
                 SwitchState(HtmlTokenizerState.Data);
-                EmitToken<CommentToken>(CurrentToken<CommentToken>().Data);
+                EmitToken<CommentToken>(CurrentToken<CommentToken>().Data.ToString());
                 break;
 
             // Switch to the comment end bang state.
@@ -661,13 +754,13 @@ public partial class HTMLTokenizer
 
             // Append a U+002D HYPHEN-MINUS character (-) to the comment token's data.
             case '-': // -
-                CurrentToken<CommentToken>().Data += '-';
+                CurrentToken<CommentToken>().Data.Append('-');
                 break;
 
             // Append two U+002D HYPHEN-MINUS characters (-) to the comment token's data.
             // Reconsume in the comment state.
             default:
-                CurrentToken<CommentToken>().Data += "--";
+                CurrentToken<CommentToken>().Data.Append("--");
                 SwitchState(HtmlTokenizerState.Comment, true);
                 break;
         }
@@ -682,7 +775,7 @@ public partial class HTMLTokenizer
             // Append two U+002D HYPHEN-MINUS characters (-) and a U+0021 EXCLAMATION MARK character (!) to the comment token's data.
             // Switch to the comment end dash state.
             case '-': // -
-                CurrentToken<CommentToken>().Data += "--!";
+                CurrentToken<CommentToken>().Data.Append("--!");
                 SwitchState(HtmlTokenizerState.CommentEndDash);
                 break;
 
@@ -699,7 +792,7 @@ public partial class HTMLTokenizer
             // Append two U+002D HYPHEN-MINUS characters (-) and a U+0021 EXCLAMATION MARK character (!) to the comment token's data.
             // Reconsume in the comment state. 
             default:
-                CurrentToken<CommentToken>().Data += "--!";
+                CurrentToken<CommentToken>().Data.Append("--!");
                 SwitchState(HtmlTokenizerState.Comment, true);
                 break;
         }
@@ -730,7 +823,7 @@ public partial class HTMLTokenizer
             // Append a U+002D HYPHEN-MINUS character (-) to the comment token's data.
             // Reconsume in the comment state.
             default:
-                CurrentToken<CommentToken>().Data += '-';
+                CurrentToken<CommentToken>().Data.Append('-');
                 SwitchState(HtmlTokenizerState.Comment, true);
                 break;
         }
@@ -753,13 +846,13 @@ public partial class HTMLTokenizer
             // Append a U+FFFD REPLACEMENT CHARACTER character to the comment token's data.
             case '\0': // NULL
                 LogParseError("unexpected-null-character", CurrentToken<CommentToken>());
-                CurrentToken<CommentToken>().Data += "\uFFFD";
+                CurrentToken<CommentToken>().Data.Append('\uFFFD');
                 break;
 
             // Anything else
             // Append the current input character to the comment token's data.
             default:
-                CurrentToken<CommentToken>().Data += currentInputCharacter;
+                CurrentToken<CommentToken>().Data.Append(currentInputCharacter);
                 break;
         }
 
@@ -775,13 +868,13 @@ public partial class HTMLTokenizer
             // Append the current input character to the comment token's data.
             // Switch to the comment less-than sign bang state.
             case '!': // !
-                CurrentToken<CommentToken>().Data += currentInputCharacter;
+                CurrentToken<CommentToken>().Data.Append(currentInputCharacter);
                 SwitchState(HtmlTokenizerState.CommentLessThanSignBang);
                 break;
 
             // Append the current input character to the comment token's data.
             case '<': // <
-                CurrentToken<CommentToken>().Data += currentInputCharacter;
+                CurrentToken<CommentToken>().Data.Append(currentInputCharacter);
                 break;
 
             // Anything else
@@ -789,6 +882,83 @@ public partial class HTMLTokenizer
             default:
                 SwitchState(HtmlTokenizerState.Comment, true);
                 break;
+        }
+    }
+
+    private void CharacterReferenceState(char currentInputCharacter)
+    {
+        _temporaryBuffer.Clear();
+        _temporaryBuffer.Append('&');
+
+        switch (currentInputCharacter)
+        {
+            // ASCII alphanumeric
+            // Reconsume in the named character reference state.
+            case >= 'A' and <= 'Z': // A-Z
+            case >= 'a' and <= 'z': // a-z
+            case >= '0' and <= '9': // 0-9
+                SwitchState(HtmlTokenizerState.NamedCharacterReference, true);
+                break;
+
+            // Append the current input character to the temporary buffer.
+            // Switch to the numeric character reference state.
+            case '#':
+                _temporaryBuffer.Append(currentInputCharacter);
+                SwitchState(HtmlTokenizerState.NumericCharacterReference);
+                break;
+
+            // Anything else
+            // Flush code points consumed as a character reference.
+            // Reconsume in the return state
+            default:
+                FlushCodePointsConsumedAsCharacterReference();
+                SwitchState(_returnState, true);
+                break;
+        }
+    }
+
+    // 13.2.5.73 Named character reference state
+    // https://html.spec.whatwg.org/multipage/parsing.html#named-character-reference-state
+    private void NamedCharacterReferenceState(char currentInputCharacter)
+    {
+        // FIXME: I dont think that my implementation is correct
+        // The spec is kinda confusing here
+
+        // Consume the maximum number of characters possible,
+        // where the consumed characters are one of the identifiers in the first column of the named character references table.
+        // Append each character to the temporary buffer when it's consumed.
+        var match = Entities.CodePointsFromEntity(Encoding.UTF8.GetString(_buffer.PeekRemainingBytes()));
+        if (match.HasMatch)
+        {
+            // TODO: This is not completely implemented
+            // If the character reference was consumed as part of an attribute,
+            // and the last character matched is not a U+003B SEMICOLON character (;),
+            // and the next input character is either a U+003D EQUALS SIGN character (=) or an ASCII alphanumeric,
+            // then, for historical reasons, flush code points consumed as a character reference and switch to the return state.
+
+            Skip(match.Entity.Length - 1);
+            foreach (var ch in match.Entity)
+                _temporaryBuffer.Append(ch);
+
+            // TODO: Implement consumed as part of an attribute
+
+            _temporaryBuffer.Clear();
+
+            // Append all code points consumed to the temporary buffer.
+            foreach (var codePoint in match.CodePoints)
+                _temporaryBuffer.Append((char)codePoint);
+
+            FlushCodePointsConsumedAsCharacterReference();
+            SwitchState(_returnState);
+        }
+        else
+        {
+            // Otherwise
+            // Flush code points consumed as a character reference.
+            // Switch to the ambiguous ampersand state.
+
+            FlushCodePointsConsumedAsCharacterReference();
+            SwitchState(HtmlTokenizerState.AmbiguousAmpersand);
         }
     }
 
@@ -892,10 +1062,25 @@ public partial class HTMLTokenizer
                 SwitchState(HtmlTokenizerState.AttributeName, true);
                 break;
         }
-        
+
         // TODO: Implement EOF handling
     }
-    
+
+    private void FlushCodePointsConsumedAsCharacterReference()
+    {
+        // Each code point in the temporary buffer (in the order they were added to the buffer )
+        // user agent must append to the code point from the buffer to the current attribute's value
+        // if the character reference was consumed as part of an attribute, or emit the code point as a character token otherwise.
+
+        // TODO: Implement consumed as part of an attribute
+
+        foreach (var codePoint in _temporaryBuffer.ToString())
+        {
+            CurrentToken<CharacterToken>().Data.Append(codePoint);
+            EmitToken<CharacterToken>();
+        }
+    }
+
     private void LogParseError(string reason, HTMLToken token)
     {
         Console.WriteLine("ParseError: " + reason + " at " + token.Position + " in " + token.GetType().Name + "");

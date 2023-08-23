@@ -5,9 +5,6 @@ namespace HTML_NET;
 
 public class ByteBuffer
 {
-    public long Length { get; }
-    public long Position { get; private set; }
-
     private readonly byte[] _data;
 
     public ByteBuffer(byte[] data)
@@ -16,11 +13,20 @@ public class ByteBuffer
         Length = data.Length;
         _data = data;
     }
-    
+
+    public long Length { get; }
+    public long Position { get; private set; }
+
     [Pure]
     public bool IsEndOfBuffer()
     {
         return !CanPeekByte(1);
+    }
+
+    [Pure]
+    public byte[] PeekRemainingBytes()
+    {
+        return PeekBytes((int)(Length - Position));
     }
 
     [Pure]
@@ -50,7 +56,8 @@ public class ByteBuffer
 
     public void UnreadByte()
     {
-        if (Position <= 0) throw new ArgumentOutOfRangeException(nameof(Position), "Cannot unread byte under position 0");
+        if (Position <= 0)
+            throw new ArgumentOutOfRangeException(nameof(Position), "Cannot unread byte under position 0");
         Position--;
     }
 
@@ -85,6 +92,7 @@ public class ByteBuffer
 
     private void AssertRead(int count = 1)
     {
-        if (!CanPeekByte(count)) throw new ArgumentOutOfRangeException(nameof(Position), "Cannot read past the end of the buffer");
+        if (!CanPeekByte(count))
+            throw new ArgumentOutOfRangeException(nameof(Position), "Cannot read past the end of the buffer");
     }
 }

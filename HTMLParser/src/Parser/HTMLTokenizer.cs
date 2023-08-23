@@ -1,4 +1,5 @@
-﻿using HTML_NET.Parser.Tokens;
+﻿using System.Text;
+using HTML_NET.Parser.Tokens;
 
 namespace HTML_NET.Parser;
 
@@ -6,12 +7,13 @@ public partial class HTMLTokenizer
 {
     private readonly ByteBuffer _buffer;
     private readonly Dictionary<Type, HTMLToken> _currentTokens;
+    private readonly StringBuilder _temporaryBuffer;
 
     private HtmlTokenizerState _currentState;
     private HTMLToken? _nextToken;
 
     private bool _reconsume;
-    
+
     // _returnState is not used yet
     private HtmlTokenizerState _returnState;
 
@@ -21,14 +23,15 @@ public partial class HTMLTokenizer
         _currentTokens = new Dictionary<Type, HTMLToken>();
         _currentState = HtmlTokenizerState.Data;
         _returnState = HtmlTokenizerState.Data;
+        _temporaryBuffer = new StringBuilder();
     }
 
     /// <summary>
-    /// Get the next token or null if there are no more tokens from the buffer.
-    /// There is no method to check if the input reached its end right now, so just check for null.
+    ///     Get the next token or null if there are no more tokens from the buffer.
+    ///     There is no method to check if the input reached its end right now, so just check for null.
     /// </summary>
     /// <returns>
-    ///  HTMLToken or null if there are no more tokens from the buffer.
+    ///     HTMLToken or null if there are no more tokens from the buffer.
     /// </returns>
     public HTMLToken? NextToken()
     {
@@ -57,6 +60,7 @@ public partial class HTMLTokenizer
                 DataState(currentInputCharacter);
                 break;
             case HtmlTokenizerState.CharacterReference:
+                CharacterReferenceState(currentInputCharacter);
                 break;
             case HtmlTokenizerState.TagOpen:
                 TagOpenState(currentInputCharacter);
@@ -106,8 +110,10 @@ public partial class HTMLTokenizer
                 AttributeValueDoubleQuotedState(currentInputCharacter);
                 break;
             case HtmlTokenizerState.AttributeValueSingleQuoted:
+                AttributeValueSingleQuotedState(currentInputCharacter);
                 break;
             case HtmlTokenizerState.AttributeValueUnquoted:
+                AttributeValueUnquotedState(currentInputCharacter);
                 break;
             case HtmlTokenizerState.CommentStartDash:
                 CommentStartDashState(currentInputCharacter);
@@ -135,6 +141,15 @@ public partial class HTMLTokenizer
                 break;
             case HtmlTokenizerState.CommentLessThanSignBangDashDash:
                 CommentLessThanSignBangDashDashState(currentInputCharacter);
+                break;
+            case HtmlTokenizerState.NamedCharacterReference:
+                NamedCharacterReferenceState(currentInputCharacter);
+                break;
+            case HtmlTokenizerState.NumericCharacterReference:
+                throw new NotImplementedException("NumericCharacterReferenceState not implemented yet");
+                break;
+            case HtmlTokenizerState.AmbiguousAmpersand:
+                throw new NotImplementedException("AmbiguousAmpersandState not implemented yet");
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(_currentState), "Unknown state");
@@ -205,7 +220,8 @@ public partial class HTMLTokenizer
     private void EmitToken<T>(string data) where T : HTMLToken, new()
     {
         var token = CurrentToken<T>();
-        token.Data = data;
+        token.Data.Clear();
+        token.Data.Append(data);
         token.Position = _buffer.Position;
 
         _nextToken = token;
@@ -219,14 +235,14 @@ public partial class HTMLTokenizer
     {
         // if parent class of token is TagToken, we set type to TagToken
         if (typeof(T).IsSubclassOf(typeof(TagToken))) return CurrentToken<T>(typeof(TagToken));
-        
+
         // if we already have a token of the specified type, we return it
         if (_currentTokens.TryGetValue(typeof(T), out var value)) return (T)value;
-        
+
         // otherwise we create a new token of the specified type
         var token = new T();
         _currentTokens.Add(typeof(T), token);
-        
+
         return token;
     }
 

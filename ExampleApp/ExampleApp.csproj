@@ -9,13 +9,13 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <Content Include="..\.dockerignore">
-        <Link>.dockerignore</Link>
-      </Content>
+        <Content Include="..\.dockerignore">
+            <Link>.dockerignore</Link>
+        </Content>
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\HTMLParser\HTMLParser.csproj" />
+        <ProjectReference Include="..\HTMLParser\HTMLParser.csproj"/>
     </ItemGroup>
 
 </Project>
