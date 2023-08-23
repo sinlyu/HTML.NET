@@ -7,9 +7,13 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="361e1822-f7d2-41b5-bb5c-3615446aed8d" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.LibHtmlNet/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.LibHtmlNet/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/HTMLParser/src/ByteBuffer.cs" beforeDir="false" afterPath="$PROJECT_DIR$/HTMLParser/src/ByteBuffer.cs" afterDir="false" />
+    <list default="true" id="21fa1f50-1ae8-4714-b385-68a208f4c413" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/LibHtmlNet/src/DOM/NameOrDescription.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/LibHtmlNet/src/DOM/Node.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/LibHtmlNet/src/DOM/NodeType.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/LibHtmlNet/LibHtmlNet.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/LibHtmlNet/LibHtmlNet.csproj" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/LibHtmlNet/src/HtmlTokenizer.cs" beforeDir="false" afterPath="$PROJECT_DIR$/LibHtmlNet/src/HtmlTokenizer.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/LibHtmlNet/src/Program.cs" beforeDir="false" afterPath="$PROJECT_DIR$/LibHtmlNet/src/Program.cs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -19,56 +23,45 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="GitToolBoxStore">
-    <option name="projectConfigVersion" value="5" />
-  </component>
   <component name="HighlightingSettingsPerFile">
-    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/7641a1a0695522e81971758464776ba68659afdcd53575f6917f7593181d9345/Dictionary.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/bd1d5c50194fea68ff3559c160230b0ab50f5acf4ce3061bffd6d62958e2182/ExceptionDispatchInfo.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/HTMLParser/src/ByteBuffer.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/HTMLParser/src/Parser/HTMLTokenizer.States.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/HTMLParser/src/Parser/HTMLTokenizer.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/HTMLParser/src/Parser/Tokens/CharacterToken.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/HTMLParser/src/Parser/Tokens/CommentToken.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/HTMLParser/src/Parser/Tokens/DOCTYPEToken.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/HTMLParser/src/Parser/Tokens/EndTagToken.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/HTMLParser/src/Parser/Tokens/HTMLToken.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/HTMLParser/src/Parser/Tokens/HTMLTokenType.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/HTMLParser/src/Parser/Tokens/StartTagToken.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/HTMLParser/src/Parser/Tokens/TagToken.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/82c9bb5e221a173c1fdea3a72e50e7c731b51a6a7d3bc7e38ab8f5fb42194b7/Array.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///home/utherali/RiderProjects/LibHtmlNet/LibHtmlNet/src/HtmlTokenizer.cs" root0="SKIP_HIGHLIGHTING" />
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
   </component>
   <component name="MetaFilesCheckinStateConfiguration" checkMetaFiles="true" />
   <component name="ProjectColorInfo">{
-  &quot;associatedIndex&quot;: 4
+  &quot;associatedIndex&quot;: 3
 }</component>
-  <component name="ProjectId" id="2UFNTBg3aNx8bgwRy48VZE3GlGN" />
+  <component name="ProjectId" id="2UHu1CHQAkJLr60B51I1c1KOwDE" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "WebServerToolWindowFactoryState": "false",
-    "git-widget-placeholder": "master",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "settings.editor.selected.configurable": "preferences.pluginManager",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   },
-  "keyToStringList": {
-    "rider.external.source.directories": [
-      "C:\\Users\\Uther\\AppData\\Roaming\\JetBrains\\Rider2023.2\\resharper-host\\DecompilerCache",
-      "C:\\Users\\Uther\\AppData\\Roaming\\JetBrains\\Rider2023.2\\resharper-host\\SourcesCache",
-      "C:\\Users\\Uther\\AppData\\Local\\Symbols\\src"
+  &quot;keyToStringList&quot;: {
+    &quot;rider.external.source.directories&quot;: [
+      &quot;/home/utherali/.config/JetBrains/Rider2023.2/resharper-host/DecompilerCache&quot;,
+      &quot;/home/utherali/.config/JetBrains/Rider2023.2/resharper-host/SourcesCache&quot;,
+      &quot;/home/utherali/.local/share/Symbols/src&quot;
     ]
   }
-}]]></component>
-  <component name="RunManager" selected=".NET Project.LibHtmlNet">
+}</component>
+  <component name="RunManager">
     <configuration name="LibHtmlNet" type="DotNetProject" factoryName=".NET Project">
       <option name="EXE_PATH" value="" />
       <option name="PROGRAM_PARAMETERS" value="" />
@@ -77,7 +70,7 @@
       <option name="USE_EXTERNAL_CONSOLE" value="0" />
       <option name="USE_MONO" value="0" />
       <option name="RUNTIME_ARGUMENTS" value="" />
-      <option name="PROJECT_PATH" value="$PROJECT_DIR$/HTMLParser/HTMLParser.csproj" />
+      <option name="PROJECT_PATH" value="$PROJECT_DIR$/LibHtmlNet/LibHtmlNet.csproj" />
       <option name="PROJECT_EXE_PATH_TRACKING" value="1" />
       <option name="PROJECT_ARGUMENTS_TRACKING" value="1" />
       <option name="PROJECT_WORKING_DIRECTORY_TRACKING" value="1" />
@@ -87,57 +80,43 @@
         <option name="Build" />
       </method>
     </configuration>
-    <configuration name="LibHtmlNet/Dockerfile" type="docker-deploy" factoryName="dockerfile" server-name="Docker">
-      <deployment type="dockerfile">
-        <settings>
-          <option name="imageTag" value="libhtmlnet" />
-          <option name="containerName" value="libhtmlnet" />
-          <option name="contextFolderPath" value="E:\projects\LibHtmlNet" />
-          <option name="sourceFilePath" value="LibHtmlNet/Dockerfile" />
-        </settings>
-      </deployment>
-      <EXTENSION ID="com.jetbrains.rider.docker.debug" isFastModeEnabled="true" isSslEnabled="false" />
-      <method v="2" />
-    </configuration>
-    <configuration default="true" type="docker-deploy" factoryName="dockerfile" temporary="true">
-      <deployment type="dockerfile">
-        <settings />
-      </deployment>
-      <EXTENSION ID="com.jetbrains.rider.docker.debug" isFastModeEnabled="true" isSslEnabled="false" />
-      <method v="2" />
-    </configuration>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
-      <changelist id="361e1822-f7d2-41b5-bb5c-3615446aed8d" name="Changes" comment="" />
-      <created>1692531373686</created>
+      <changelist id="21fa1f50-1ae8-4714-b385-68a208f4c413" name="Changes" comment="" />
+      <created>1692608610890</created>
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
-      <updated>1692531373686</updated>
-      <workItem from="1692531374725" duration="24014000" />
-      <workItem from="1692648989898" duration="2531000" />
-      <workItem from="1692691349249" duration="8309000" />
-      <workItem from="1692717986501" duration="685000" />
-      <workItem from="1692725960906" duration="6116000" />
+      <updated>1692608610890</updated>
+      <workItem from="1692608612373" duration="10756000" />
+      <workItem from="1692773504102" duration="31000" />
     </task>
-    <task id="LOCAL-00001" summary="Some refactoring, added HTMLTokenType.cs and removed the State enum as a single file.">
+    <task id="LOCAL-00001" summary="Rename 'Tokenizer' to 'HtmlTokenizer' and refactor the relevant code&#10;&#10;The 'Tokenizer' class is renamed to 'HtmlTokenizer' for better context clarity. Similarly, 'TokenizerState' enum is updated to 'HtmlTokenizerState'. &#10;Reason being, specificity of the class and the enum to be used for HTML parsing is now made clear in the name.&#10;Also, added 'SelfClosing' attribute to the 'StartTagToken' class to handle self-closing HTML tags. &#10;This change will improve the identification of self-closing Tags in the HTML parsing.&#10;Many state handling functions are also added into 'HtmlTokenizer' class.&#10;This detailed implementation ensures complete and correct parsing as specified by the HTML standard.">
       <option name="closed" value="true" />
-      <created>1692715344905</created>
+      <created>1692621167050</created>
       <option name="number" value="00001" />
       <option name="presentableId" value="LOCAL-00001" />
       <option name="project" value="LOCAL" />
-      <updated>1692715344906</updated>
+      <updated>1692621167050</updated>
     </task>
-    <task id="LOCAL-00002" summary="fix: MarkupDeclarationOpenState used Consume instead of Skip after peeking">
+    <task id="LOCAL-00002" summary="Ignore CharacterToken in EmitToken method&#10;&#10;Added a condition in the EmitToken method of the HtmlTokenizer class to ignore CharacterToken. This change is temporary and makes testing easier.">
       <option name="closed" value="true" />
-      <created>1692718077869</created>
+      <created>1692621265042</created>
       <option name="number" value="00002" />
       <option name="presentableId" value="LOCAL-00002" />
       <option name="project" value="LOCAL" />
-      <updated>1692718077869</updated>
+      <updated>1692621265042</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="Implement AfterAttributeNameState in HtmlTokenizer&#10;&#10;Added a new method AfterAttributeNameState in HtmlTokenizer.cs to follow HTML specifications related to attribute name handling. This method provides functionality for different decisions based on the current input character. Also, updated the existing tests to include a line break '&lt;hr /&gt;' to ensure that newly added functionality is working correctly.">
+      <option name="closed" value="true" />
+      <created>1692623506149</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1692623506149</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -146,22 +125,21 @@
   <component name="UnityCheckinConfiguration" checkUnsavedScenes="true" />
   <component name="VcsManagerConfiguration">
     <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="true" />
-    <MESSAGE value="Some refactoring, added HTMLTokenType.cs and removed the State enum as a single file." />
-    <MESSAGE value="fix: MarkupDeclarationOpenState used Consume instead of Skip after peeking" />
-    <option name="LAST_COMMIT_MESSAGE" value="fix: MarkupDeclarationOpenState used Consume instead of Skip after peeking" />
+    <MESSAGE value="Rename 'Tokenizer' to 'HtmlTokenizer' and refactor the relevant code&#10;&#10;The 'Tokenizer' class is renamed to 'HtmlTokenizer' for better context clarity. Similarly, 'TokenizerState' enum is updated to 'HtmlTokenizerState'. &#10;Reason being, specificity of the class and the enum to be used for HTML parsing is now made clear in the name.&#10;Also, added 'SelfClosing' attribute to the 'StartTagToken' class to handle self-closing HTML tags. &#10;This change will improve the identification of self-closing Tags in the HTML parsing.&#10;Many state handling functions are also added into 'HtmlTokenizer' class.&#10;This detailed implementation ensures complete and correct parsing as specified by the HTML standard." />
+    <MESSAGE value="Ignore CharacterToken in EmitToken method&#10;&#10;Added a condition in the EmitToken method of the HtmlTokenizer class to ignore CharacterToken. This change is temporary and makes testing easier." />
+    <MESSAGE value="Implement AfterAttributeNameState in HtmlTokenizer&#10;&#10;Added a new method AfterAttributeNameState in HtmlTokenizer.cs to follow HTML specifications related to attribute name handling. This method provides functionality for different decisions based on the current input character. Also, updated the existing tests to include a line break '&lt;hr /&gt;' to ensure that newly added functionality is working correctly." />
+    <option name="LAST_COMMIT_MESSAGE" value="Implement AfterAttributeNameState in HtmlTokenizer&#10;&#10;Added a new method AfterAttributeNameState in HtmlTokenizer.cs to follow HTML specifications related to attribute name handling. This method provides functionality for different decisions based on the current input character. Also, updated the existing tests to include a line break '&lt;hr /&gt;' to ensure that newly added functionality is working correctly." />
   </component>
   <component name="XDebuggerManager">
     <pin-to-top-manager>
       <pinned-members>
-        <PinnedItemInfo parentTag="Type#LibHtmlNet.HtmlTokenizer" memberName="_tokens" />
+        <PinnedItemInfo parentTag="Type#LibHtmlNet.HtmlTokenizer" memberName="_currentTokens" />
+        <PinnedItemInfo parentTag="Frame#Program.&lt;Main&gt;$" memberName="tokenizer" />
       </pinned-members>
     </pin-to-top-manager>
     <watches-manager>
       <configuration name="DotNetProject">
-        <watch expression="this._tokens" />
-        <watch expression="new System.Collections.Generic.ICollectionDebugView&lt;LibHtmlNet.Tokens.Token&gt;(this._tokens).Items[115]" />
-        <watch expression="new System.Collections.Generic.ICollectionDebugView&lt;LibHtmlNet.Tokens.Token&gt;(this._tokens).Items[96]" />
-        <watch expression="new System.Collections.Generic.ICollectionDebugView&lt;LibHtmlNet.Tokens.Token&gt;(this._tokens).Items[96]" />
+        <watch expression="((LibHtmlNet.Tokens.StartTagToken) new System.Collections.Generic.ICollectionDebugView&lt;LibHtmlNet.Tokens.Token&gt;(this._tokens).Items[6]).SelfClosing" />
       </configuration>
     </watches-manager>
   </component>
