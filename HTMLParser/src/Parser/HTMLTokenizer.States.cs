@@ -38,6 +38,8 @@ public partial class HTMLTokenizer
         CommentLessThanSignBangDashDash
     }
 
+    // 13.2.5.1 Data state
+    // https://html.spec.whatwg.org/multipage/parsing.html#data-state
     private void DataState(char currentInputCharacter)
     {
         switch (currentInputCharacter)
@@ -75,6 +77,8 @@ public partial class HTMLTokenizer
         // TODO: Implement EOF handling
     }
 
+    // 13.2.5.6 Tag open state
+    // https://html.spec.whatwg.org/multipage/parsing.html#tag-open-state
     private void TagOpenState(char currentInputCharacter)
     {
         switch (currentInputCharacter)
@@ -117,6 +121,8 @@ public partial class HTMLTokenizer
         // TODO: Implement EOF handling
     }
 
+    // 13.2.5.7 End tag open state
+    // https://html.spec.whatwg.org/multipage/parsing.html#end-tag-open-state
     private void EndTagOpenState(char currentInputCharacter)
     {
         switch (currentInputCharacter)
@@ -149,6 +155,8 @@ public partial class HTMLTokenizer
         // TODO: Implement EOF handling
     }
 
+    // 13.2.5.8 Tag name state
+    // https://html.spec.whatwg.org/multipage/parsing.html#tag-name-state
     private void TagNameState(char currentInputCharacter)
     {
         switch (currentInputCharacter)
@@ -188,6 +196,8 @@ public partial class HTMLTokenizer
         // TODO: Implement EOF handling
     }
 
+    // 13.2.5.32 Before attribute name state
+    // https://html.spec.whatwg.org/multipage/parsing.html#before-attribute-name-state
     private void BeforeAttributeNameState(char currentInputCharacter)
     {
         switch (currentInputCharacter)
@@ -226,6 +236,8 @@ public partial class HTMLTokenizer
         // TODO: Implement EOF handling
     }
 
+    // 13.2.5.33 Attribute name state
+    // https://html.spec.whatwg.org/multipage/parsing.html#attribute-name-state
     private void AttributeNameState(char currentInputCharacter)
     {
         switch (currentInputCharacter)
@@ -271,6 +283,8 @@ public partial class HTMLTokenizer
         }
     }
 
+    // 13.2.5.42 Markup declaration open state
+    // https://html.spec.whatwg.org/multipage/parsing.html#markup-declaration-open-state
     private void MarkupDeclarationOpenState(char currentInputCharacter)
     {
         // If the next two characters are both U+002D (-) characters
@@ -311,6 +325,8 @@ public partial class HTMLTokenizer
         }
     }
 
+    // 13.2.5.53 DOCTYPE state
+    // https://html.spec.whatwg.org/multipage/parsing.html#doctype-state
     private void DocTypeState(char currentInputCharacter)
     {
         switch (currentInputCharacter)
@@ -340,6 +356,8 @@ public partial class HTMLTokenizer
         // TODO: Implement EOF handling
     }
 
+    // 13.2.5.54 Before DOCTYPE name state
+    // https://html.spec.whatwg.org/multipage/parsing.html#before-doctype-name-state
     private void BeforeDocTypeName(char currentInputCharacter)
     {
         switch (currentInputCharacter)
@@ -389,6 +407,8 @@ public partial class HTMLTokenizer
         }
     }
 
+    // 13.2.5.55 DOCTYPE name state
+    // https://html.spec.whatwg.org/multipage/parsing.html#doctype-name-state
     private void DocTypeNameState(char currentInputCharacter)
     {
         switch (currentInputCharacter)
@@ -430,6 +450,8 @@ public partial class HTMLTokenizer
         // TODO: Implement EOF handling
     }
 
+    // 13.2.5.35 Before attribute value state
+    // https://html.spec.whatwg.org/multipage/parsing.html#before-attribute-value-state
     private void BeforeAttributeValueState(char currentInputCharacter)
     {
         switch (currentInputCharacter)
@@ -467,6 +489,8 @@ public partial class HTMLTokenizer
         }
     }
 
+    // 13.2.5.43 Comment start state
+    // https://html.spec.whatwg.org/multipage/parsing.html#comment-start-state
     private void CommentStartState(char currentInputCharacter)
     {
         switch (currentInputCharacter)
@@ -492,6 +516,8 @@ public partial class HTMLTokenizer
         }
     }
 
+    // 13.2.5.45 Comment state
+    // https://html.spec.whatwg.org/multipage/parsing.html#comment-state
     private void CommentState(char currentInputCharacter)
     {
         switch (currentInputCharacter)
@@ -524,6 +550,8 @@ public partial class HTMLTokenizer
         // TODO: Implement EOF handling
     }
 
+    // 13.2.5.36 Attribute value (double-quoted) state 
+    // https://html.spec.whatwg.org/multipage/parsing.html#after-attribute-value-(quoted)-state
     private void AttributeValueDoubleQuotedState(char currentInputCharacter)
     {
         switch (currentInputCharacter)
@@ -554,6 +582,8 @@ public partial class HTMLTokenizer
         }
     }
 
+    // 13.2.5.39 After attribute value (quoted) state
+    // https://html.spec.whatwg.org/multipage/parsing.html#after-attribute-value-(quoted)-state
     private void AfterAttributeValueQuotedState(char currentInputCharacter)
     {
         switch (currentInputCharacter)
