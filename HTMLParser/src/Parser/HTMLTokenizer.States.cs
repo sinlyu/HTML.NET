@@ -1,5 +1,4 @@
-﻿using System.Drawing;
-using System.Text;
+﻿using System.Text;
 using HTML_NET.Parser.Tokens;
 
 namespace HTML_NET.Parser;
@@ -66,11 +65,7 @@ public partial class HTMLTokenizer
             case '\0':
                 var token = CurrentToken<CharacterToken>();
                 LogParseError("unexpected-null-character", token);
-
-                token.Data.Clear();
-                token.Data.Append(currentInputCharacter);
-
-                EmitToken<CharacterToken>();
+                EmitToken<CharacterToken>(currentInputCharacter.ToString());
                 break;
 
             // Anything else
@@ -939,11 +934,11 @@ public partial class HTMLTokenizer
             // then, for historical reasons, flush code points consumed as a character reference and switch to the return state.
 
             Skip(match.Entity.Length);
+            
             foreach (var ch in match.Entity)
                 _temporaryBuffer.Append(ch);
-
+            
             // TODO: Implement consumed as part of an attribute
-
             _temporaryBuffer.Clear();
 
             // Append all code points consumed to the temporary buffer.
@@ -958,7 +953,6 @@ public partial class HTMLTokenizer
             // Otherwise
             // Flush code points consumed as a character reference.
             // Switch to the ambiguous ampersand state.
-
             FlushCodePointsConsumedAsCharacterReference();
             SwitchState(HtmlTokenizerState.AmbiguousAmpersand);
         }
@@ -980,9 +974,8 @@ public partial class HTMLTokenizer
                 }
                 else
                 {
-                    CurrentToken<CharacterToken>().Data.Clear();
                     CurrentToken<CharacterToken>().Data.Append(currentInputCharacter);
-                    EmitToken<CharacterToken>();
+                    EmitToken<CharacterToken>(CurrentToken<CharacterToken>().Data.ToString());
                 }
                 break;
             
@@ -1113,8 +1106,7 @@ public partial class HTMLTokenizer
         }
         else
         {
-            CurrentToken<CharacterToken>().Data.Append(_temporaryBuffer);
-            EmitToken<CharacterToken>();
+            EmitToken<CharacterToken>(_temporaryBuffer.ToString());
         }
         _temporaryBuffer.Clear();
     }

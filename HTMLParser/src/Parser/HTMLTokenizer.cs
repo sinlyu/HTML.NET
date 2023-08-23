@@ -7,7 +7,7 @@ public partial class HTMLTokenizer
 {
     private readonly ByteBuffer _buffer;
     private readonly Dictionary<Type, HTMLToken> _currentTokens;
-    private readonly StringBuilder _temporaryBuffer;
+    private  StringBuilder _temporaryBuffer;
 
     private HtmlTokenizerState _currentState;
     private HTMLToken? _nextToken;
@@ -220,7 +220,6 @@ public partial class HTMLTokenizer
     private void EmitToken<T>(string data) where T : HTMLToken, new()
     {
         var token = CurrentToken<T>();
-        token.Data.Clear();
         token.Data.Append(data);
         token.Position = _buffer.Position;
 

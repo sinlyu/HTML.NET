@@ -37,10 +37,10 @@ public class TagToken : HTMLToken
     public void AddAttributeName(string value)
     {
         // FIXME: This is a hack to to replace the Key of the current attribute
-        var attribute = new KeyValuePair<string, string>(value, _currentAttribute.Value);
+        var newAttribute = new KeyValuePair<string, string>(_currentAttribute.Key + value, _currentAttribute.Value);
         Attributes.Remove(_currentAttribute.Key);
-        Attributes.Add(attribute.Key, attribute.Value);
-        _currentAttribute = attribute;
+        Attributes.Add(newAttribute.Key, newAttribute.Value);
+        _currentAttribute = newAttribute;
     }
 
     public void AddAttributeName(char value)
