@@ -7,6 +7,7 @@
         <DockerDefaultTargetOS>Windows</DockerDefaultTargetOS>
         <RootNamespace>HTML_NET</RootNamespace>
         <PackageId>HTMLParser</PackageId>
+        <PublishAot>true</PublishAot>
     </PropertyGroup>
 
     <ItemGroup>

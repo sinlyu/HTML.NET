@@ -2248,7 +2248,6 @@ public static class Entities
     private class Trie
     {
         private readonly TrieNode _root = new();
-        
         public void Add(string word)
         {
             var node = _root;

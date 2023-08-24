@@ -25,7 +25,7 @@ public class TagToken : HTMLToken
         // This can cause duplicate keys in the Attributes dictionary
 
         _currentAttribute = new KeyValuePair<string, string>(name, string.Empty);
-        Attributes.Add(_currentAttribute.Key, _currentAttribute.Value);
+        Attributes.TryAdd(_currentAttribute.Key, _currentAttribute.Value);
     }
 
     public void NewAttribute(char name)
@@ -38,7 +38,7 @@ public class TagToken : HTMLToken
         // FIXME: This is a hack to to replace the Key of the current attribute
         var newAttribute = new KeyValuePair<string, string>(_currentAttribute.Key + value, _currentAttribute.Value);
         Attributes.Remove(_currentAttribute.Key);
-        Attributes.Add(newAttribute.Key, newAttribute.Value);
+        Attributes.TryAdd(newAttribute.Key, newAttribute.Value);
         _currentAttribute = newAttribute;
     }
 
