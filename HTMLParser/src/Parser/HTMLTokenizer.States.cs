@@ -665,6 +665,8 @@ public partial class HTMLTokenizer
             // If the number is one of the numbers in the first column of the following table,
             // then find the row with that number in the first column,
             // and set the character reference code to the number in the second column of that row.
+            
+            // FIXME: use a dictionary instead of a tuple array
 
             (int Number, int CodePoint)[] conversionTable =
             {
