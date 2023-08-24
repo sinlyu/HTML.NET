@@ -1,4 +1,4 @@
-﻿using HTML_NET.Parser.Tokens;
+﻿namespace HTML_NET.Parser.Tokens;
 
 public class StartTagToken : TagToken
 {

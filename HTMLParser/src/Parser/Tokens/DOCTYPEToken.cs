@@ -10,4 +10,8 @@ public class DOCTYPEToken : HTMLToken
 
     public string Name { get; set; }
     public bool ForceQuirks { get; set; }
+    public override int GetLength()
+    {
+        throw new NotImplementedException("DOCTYPEToken.GetLength() is not implemented.");
+    }
 }

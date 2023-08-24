@@ -2,7 +2,9 @@
 
 public class CharacterToken : HTMLToken
 {
-    public CharacterToken() : base(HTMLTokenType.Character)
+    public CharacterToken() : base(HTMLTokenType.Character) { }
+    public override int GetLength()
     {
+        return Data.Length;
     }
 }

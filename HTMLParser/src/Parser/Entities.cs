@@ -1,7 +1,10 @@
 namespace HTML_NET.Parser;
 
-public class Entities
+public static class Entities
 {
+    // 13.5 Named character references
+    // https://html.spec.whatwg.org/multipage/named-characters.html#named-character-references
+    
     private static readonly (string Entity, uint CodePoint)[] SingleCodePointEntities =
     {
         ("AElig;", 0x000C6),

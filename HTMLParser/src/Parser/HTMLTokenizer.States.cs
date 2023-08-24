@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Runtime.InteropServices.JavaScript;
+using System.Text;
 using HTML_NET.Parser.Tokens;
 
 namespace HTML_NET.Parser;
@@ -38,7 +39,11 @@ public partial class HTMLTokenizer
         CommentLessThanSignBangDashDash,
         NamedCharacterReference,
         NumericCharacterReference,
-        AmbiguousAmpersand
+        AmbiguousAmpersand,
+        HexadecimalCharacterReferenceStart,
+        DecimalCharacterReferenceStart,
+        NumericCharacterReferenceEnd,
+        DecimalCharacterReference
     }
 
     // 13.2.5.1 Data state
@@ -521,6 +526,225 @@ public partial class HTMLTokenizer
         }
     }
 
+    // 13.2.5.75 Numeric character reference state
+    // https://html.spec.whatwg.org/multipage/parsing.html#character-reference-code
+    private void NumericCharacterReferenceState(char currentInputCharacter)
+    {
+        _characterReferenceCode = 0;
+
+        switch (currentInputCharacter)
+        {
+            // Append the current input character to the temporary buffer.
+            // Switch to the hexadecimal character reference start state.
+            case 'x':
+            case 'X':
+                _temporaryBuffer.Append(currentInputCharacter);
+                SwitchState(HtmlTokenizerState.HexadecimalCharacterReferenceStart);
+                break;
+            
+            // Anything else
+            // Reconsume in the decimal character reference start state.
+            default:
+                SwitchState(HtmlTokenizerState.DecimalCharacterReferenceStart, reconsume: true);
+                break;
+        }
+    }
+
+
+    // 13.2.5.76 Hexadecimal character reference start state
+    // https://html.spec.whatwg.org/multipage/parsing.html#hexadecimal-character-reference-start-state
+    private void HexadecimalCharacterReferenceStartState(char currentInputCharacter)
+    {
+        switch (currentInputCharacter)
+        {
+            // ASCII digit
+            // https://infra.spec.whatwg.org/#ascii-digit
+            // Multiply the character reference code by 16.
+            // Add a numeric version of the current input character (subtract 0x0030 from the character's code point) to the character reference code.
+            case >= '0' and <= '9': // 0-9
+                _characterReferenceCode *= 16;
+                _characterReferenceCode += currentInputCharacter - 0x0030;
+                break;
+            
+            // ASCII upper hex digit
+            // https://infra.spec.whatwg.org/#ascii-upper-hex-digit
+            // Multiply the character reference code by 16.
+            // Add a numeric version of the current input character as a hexadecimal digit (subtract 0x0037 from the character's code point) to the character reference code.
+            case >= 'A' and <= 'F': // A-F
+                _characterReferenceCode *= 16;
+                _characterReferenceCode += currentInputCharacter - 0x0037;
+                break;
+            
+            // ASCII lower hex digit
+            // https://infra.spec.whatwg.org/#ascii-lower-hex-digit
+            // Multiply the character reference code by 16.
+            // Add a numeric version of the current input character as a hexadecimal digit (subtract 0x0057 from the character's code point) to the character reference code.
+            case >= 'a' and <= 'f': // a-f
+                _characterReferenceCode *= 16;
+                _characterReferenceCode += currentInputCharacter - 0x0057;
+                break;
+            
+            // Switch to the numeric character reference end state.
+            case ';':
+                SwitchState(HtmlTokenizerState.NumericCharacterReferenceEnd);
+                break;
+            
+            // Anything else
+            // This is a missing-semicolon-after-character-reference parse error.
+            // Reconsume in the numeric character reference end state.
+            default:
+                LogParseError("missing-semicolon-after-character-reference", CurrentToken<CharacterToken>());
+                SwitchState(HtmlTokenizerState.NumericCharacterReferenceEnd, reconsume: true);
+                break;
+        }
+    }
+
+    // 13.2.5.77 Decimal character reference start state
+    // https://html.spec.whatwg.org/multipage/parsing.html#decimal-character-reference-start-state
+    private void DecimalCharacterReferenceStartState(char currentInputCharacter)
+    {
+        switch (currentInputCharacter)
+        {
+            // ASCII digit
+            // Reconsume in the decimal character reference state.
+            case >= '0' and <= '9': // 0-9
+                SwitchState(HtmlTokenizerState.DecimalCharacterReference, reconsume: true);
+                break;
+            
+            // Anything else
+            // This is an absence-of-digits-in-numeric-character-reference parse error.
+            // Flush code points consumed as a character reference.
+            // Reconsume in the return state.
+            default:
+                LogParseError("absence-of-digits-in-numeric-character-reference", CurrentToken<CharacterToken>());
+                FlushCodePointsConsumedAsCharacterReference();
+                SwitchState(_returnState, reconsume: true);
+                break;
+        }
+    }
+
+    // 13.2.5.80 Numeric character reference end state
+    // https://html.spec.whatwg.org/multipage/parsing.html#(numeric-character-reference-end-state
+    private void NumericCharacterReferenceEndState(char currentInputCharacter)
+    {
+        // If the number is 0x00, then this is a null-character-reference parse error.
+        // Set the character reference code to 0xFFFD.
+        if (_characterReferenceCode == 0x00)
+        {
+            LogParseError("null-character-reference", CurrentToken<CharacterToken>());
+            _characterReferenceCode = 0xFFFD;
+        }
+        
+        // If the number is greater than 0x10FFFF, then this is a character-reference-outside-unicode-range parse error.
+        // Set the character reference code to 0xFFFD.
+        else if (_characterReferenceCode > 0x10FFFF)
+        {
+            LogParseError("character-reference-outside-unicode-range", CurrentToken<CharacterToken>());
+            _characterReferenceCode = 0xFFFD;
+        }
+        
+        // If the number is a surrogate, then this is a surrogate-character-reference parse error.
+        // Set the character reference code to 0xFFFD.
+        else if (IsSurrogate(_characterReferenceCode))
+        {
+            LogParseError("surrogate-character-reference", CurrentToken<CharacterToken>());
+            _characterReferenceCode = 0xFFFD;
+        }
+        
+        // If the number is a noncharacter, then this is a noncharacter-character-reference parse error.
+        else if (IsNonCharacter(_characterReferenceCode))
+        {
+            LogParseError("noncharacter-character-reference", CurrentToken<CharacterToken>());
+        }
+        
+        // If the number is 0x0D, or a control that's not ASCII whitespace, then this is a control-character-reference parse error.
+        else if (_characterReferenceCode == 0x0D ||
+                 IsControl(_characterReferenceCode) && !IsWhiteSpace(_characterReferenceCode))
+        {
+            LogParseError("control-character-reference", CurrentToken<CharacterToken>());
+           
+            // If the number is one of the numbers in the first column of the following table,
+            // then find the row with that number in the first column,
+            // and set the character reference code to the number in the second column of that row.
+            
+            (int Number, int CodePoint)[] conversionTable = {
+                (0x80, 0x20AC),     // EURO SIGN (€)
+                (0x82, 0x201A),     // SINGLE LOW-9 QUOTATION MARK (‚) 
+                (0x83, 0x0192),     // LATIN SMALL LETTER F WITH HOOK (ƒ)
+                (0x84, 0x201E), 	// DOUBLE LOW-9 QUOTATION MARK („)
+                (0x85, 0x2026),	    // HORIZONTAL ELLIPSIS (…)
+                (0x86, 0x2020), 	// DAGGER (†)
+                (0x87, 0x2021),     // DOUBLE DAGGER (‡)
+                (0x88, 0x02C6),     // MODIFIER LETTER CIRCUMFLEX ACCENT (ˆ)
+                (0x89, 0x2030),     // PER MILLE SIGN (‰)
+                (0x8A, 0x0160),     // LATIN CAPITAL LETTER S WITH CARON (Š) 
+                (0x8B, 0x2039),     // SINGLE LEFT-POINTING ANGLE QUOTATION MARK (‹) 
+                (0x8C, 0x0152),     // LATIN CAPITAL LIGATURE OE (Œ)
+                (0x8E, 0x017D),     // LATIN CAPITAL LETTER Z WITH CARON (Ž)
+                (0x91, 0x2018),     // LEFT SINGLE QUOTATION MARK (‘)
+                (0x92, 0x2019),     // RIGHT SINGLE QUOTATION MARK (’) 
+                (0x93, 0x201C),     // LEFT DOUBLE QUOTATION MARK (“)
+                (0x94, 0x201D),     // RIGHT DOUBLE QUOTATION MARK (”)
+                (0x95, 0x2022),     // BULLET (•)
+                (0x96, 0x2013),     // EN DASH (–)
+                (0x97, 0x2014),     // EM DASH (—)
+                (0x98, 0x02DC),     // SMALL TILDE (˜)
+                (0x99, 0x2122),     // TRADE MARK SIGN (™)
+                (0x9A, 0x0161),     // LATIN SMALL LETTER S WITH CARON (š)
+                (0x9B, 0x203A),     // SINGLE RIGHT-POINTING ANGLE QUOTATION MARK (›)
+                (0x9C, 0x0153),     // LATIN SMALL LIGATURE OE (œ)
+                (0x9E, 0x017E),     // LATIN SMALL LETTER Z WITH CARON (ž)
+                (0x9F, 0x0178)      // LATIN CAPITAL LETTER Y WITH DIAERESIS (Ÿ)
+            };
+            
+            foreach (var (number, codePoint) in conversionTable)
+            {
+                if (_characterReferenceCode != number) continue;
+                _characterReferenceCode = codePoint;
+                break;
+            }
+        }
+        
+        // Set the temporary buffer to the empty string.
+        // Append a code point equal to the character reference code to the temporary buffer.
+        // Flush code points consumed as a character reference.
+        // Switch to the return state.
+
+        _temporaryBuffer.Clear();
+        _temporaryBuffer.Append((char)_characterReferenceCode);
+        FlushCodePointsConsumedAsCharacterReference();
+        SwitchState(_returnState);
+    }
+
+    // 13.2.5.79 Decimal character reference state
+    // https://html.spec.whatwg.org/multipage/parsing.html#decimal-character-reference-state
+    private void DecimalCharacterReferenceState(char currentInputCharacter)
+    {
+        switch (currentInputCharacter)
+        {
+            // ASCII digit
+            // Multiply the character reference code by 10.
+            // Add a numeric version of the current input character (subtract 0x0030 from the character's code point) to the character reference code.
+            case >= '0' and <= '9': // 0-9
+                _characterReferenceCode *= 10;
+                _characterReferenceCode += currentInputCharacter - 0x0030;
+                break;
+            
+            // Switch to the numeric character reference end state.
+            case ';': // ;
+                SwitchState(HtmlTokenizerState.NumericCharacterReferenceEnd);
+                break;
+            
+            // Anything else
+            // This is a missing-semicolon-after-character-reference parse error.
+            // Reconsume in the numeric character reference end state.
+            default:
+                LogParseError("missing-semicolon-after-character-reference", CurrentToken<CharacterToken>());
+                SwitchState(HtmlTokenizerState.NumericCharacterReferenceEnd, reconsume: true);
+                break;
+        }
+    }
+
     // 13.2.5.45 Comment state
     // https://html.spec.whatwg.org/multipage/parsing.html#comment-state
     private void CommentState(char currentInputCharacter)
@@ -555,6 +779,8 @@ public partial class HTMLTokenizer
         // TODO: Implement EOF handling
     }
 
+    // 13.2.5.38 Attribute value (unquoted) state
+    // https://html.spec.whatwg.org/multipage/parsing.html#attribute-value-(unquoted)-state
     private void AttributeValueUnquotedState(char currentInputCharacter)
     {
         switch (currentInputCharacter)
@@ -1105,7 +1331,100 @@ public partial class HTMLTokenizer
 
         // TODO: Implement EOF handling
     }
+    
+    // A leading surrogate is a code point that is in the range U+D800 to U+DBFF, inclusive.
+    // https://infra.spec.whatwg.org/#leading-surrogate
+    private static bool IsLeadingSurrogate(int codePoint)
+    {
+        // TODO: use char instead of int
+        return codePoint is >= 0xD800 and <= 0xDBFF;
+    }
+    
+    // A trailing surrogate is a code point that is in the range U+DC00 to U+DFFF, inclusive.
+    // https://infra.spec.whatwg.org/#leading-surrogate
+    private static bool IsTrailingSurrogate(int codePoint)
+    {
+        // TODO: use char instead of int
+        return codePoint is >= 0xDC00 and <= 0xDFFF;
+    }
+    
+    // A surrogate is a leading surrogate or a trailing surrogate.
+    // https://infra.spec.whatwg.org/#surrogate
+    private static bool IsSurrogate(int codePoint)
+    {
+        // TODO: use char instead of int
+        return IsLeadingSurrogate(codePoint) ||
+               IsTrailingSurrogate(codePoint);
+    }
+    
+    // A scalar value is a code point that is not a surrogate.
+    // https://infra.spec.whatwg.org/#scalar-value
+    private static bool IsScalarValue(int codePoint)
+    {
+        // TODO: use char instead of int
+        return !IsSurrogate(codePoint);
+    }
 
+
+    // https://infra.spec.whatwg.org/#noncharacter
+    private static bool IsNonCharacter(int codePoint)
+    {
+        // TODO: use char instead of int
+        return codePoint
+            is >= 0xFDD0 and <= 0xFDEF
+            or 0xFFFE or 0xFFFF
+            or 0x1FFFE or 0x1FFFE
+            or 0x2FFFF or 0x2FFFE
+            or 0x3FFFF or 0x3FFFE
+            or 0x4FFFF or 0x4FFFE
+            or 0x5FFFF or 0x5FFFE
+            or 0x6FFFF or 0x6FFFE
+            or 0x7FFFF or 0x7FFFE
+            or 0x8FFFF or 0x8FFFE
+            or 0x9FFFF or 0x9FFFE
+            or 0xAFFFF or 0xAFFFE
+            or 0xBFFFF or 0xBFFFE
+            or 0xCFFFF or 0xCFFFE
+            or 0xDFFFF or 0xDFFFE
+            or 0xEFFFF or 0xEFFFE
+            or 0xFFFFF or 0xFFFFE
+            or 0x10FFFE or 0x10FFFE;
+    }
+
+    // https://infra.spec.whatwg.org/#c0-control
+    private static bool IsC0Control(int codePoint)
+    {
+        // TODO: use char instead of int
+        // A C0 control is a code point in the range U+0000 NULL to U+001F INFORMATION SEPARATOR ONE, inclusive. 
+        return codePoint is >= 0x0000 and <= 0x001F;
+    }
+
+    // https://infra.spec.whatwg.org/#c0-control-or-space
+    private static bool IsC0ControlOrSpace(int codePoint)
+    {
+        // TODO: use char instead of int
+        // A C0 control or space is a C0 control or U+0020 SPACE. 
+        return IsC0Control(codePoint) || codePoint == ' ';
+    }
+
+    // https://infra.spec.whatwg.org/#control
+    private static bool IsControl(int codePoint)
+    {
+        // TODO: use char instead of int
+        // A control is a C0 control or a code point in the range U+007F DELETE to U+009F APPLICATION PROGRAM COMMAND, inclusive. 
+        return IsC0Control(codePoint) || codePoint is >= 0x007F and <= 0x009F;
+    }
+
+    // https://infra.spec.whatwg.org/#ascii-whitespace
+    private static bool IsWhiteSpace(int codePoint)
+    {
+        // TODO: use char instead of int
+        // ASCII whitespace is U+0009 TAB, U+000A LF, U+000C FF, U+000D CR, or U+0020 SPACE. 
+        return codePoint is '\t' or '\n' or '\f' or '\r' or ' ';        
+    }
+
+    
+    // https://html.spec.whatwg.org/multipage/parsing.html#flush-code-points-consumed-as-a-character-reference
     private void FlushCodePointsConsumedAsCharacterReference()
     {
         // Each code point in the temporary buffer (in the order they were added to the buffer )
@@ -1122,6 +1441,7 @@ public partial class HTMLTokenizer
         _temporaryBuffer.Clear();
     }
 
+    // https://html.spec.whatwg.org/multipage/parsing.html#charref-in-attribute
     private bool ConsumedAsPartOfAnAttribute()
     {
         return _returnState is 
@@ -1130,7 +1450,7 @@ public partial class HTMLTokenizer
             HtmlTokenizerState.AttributeValueUnquoted;
     }
 
-    private void LogParseError(string reason, HTMLToken token)
+    private static void LogParseError(string reason, HTMLToken token)
     {
         Console.WriteLine($"\u001b[33mParse error\u001b[0m: \u001b[34m{reason}\u001b[0m at \u001b[34m{token.Position}\u001b[0m");
     }

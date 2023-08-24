@@ -7,14 +7,14 @@ public partial class HTMLTokenizer
 {
     private readonly ByteBuffer _buffer;
     private readonly Dictionary<Type, HTMLToken> _currentTokens;
-    private  StringBuilder _temporaryBuffer;
+    private readonly StringBuilder _temporaryBuffer;
 
     private HtmlTokenizerState _currentState;
     private HTMLToken? _nextToken;
 
     private bool _reconsume;
+    private int _characterReferenceCode;
 
-    // _returnState is not used yet
     private HtmlTokenizerState _returnState;
 
     public HTMLTokenizer(ByteBuffer buffer)
@@ -146,16 +146,28 @@ public partial class HTMLTokenizer
                 NamedCharacterReferenceState(currentInputCharacter);
                 break;
             case HtmlTokenizerState.NumericCharacterReference:
-                throw new NotImplementedException("NumericCharacterReferenceState not implemented yet");
+                NumericCharacterReferenceState(currentInputCharacter);
                 break;
             case HtmlTokenizerState.AmbiguousAmpersand:
                 AmbiguousAmpersandState(currentInputCharacter);
                 break;
+            case HtmlTokenizerState.HexadecimalCharacterReferenceStart:
+                HexadecimalCharacterReferenceStartState(currentInputCharacter);
+                break;
+            case HtmlTokenizerState.DecimalCharacterReferenceStart:
+                DecimalCharacterReferenceStartState(currentInputCharacter);
+                break;
+            case HtmlTokenizerState.NumericCharacterReferenceEnd:
+                NumericCharacterReferenceEndState(currentInputCharacter);
+                break;
+            case HtmlTokenizerState.DecimalCharacterReference:
+                DecimalCharacterReferenceState(currentInputCharacter);
+                break;
             default:
-                throw new ArgumentOutOfRangeException(nameof(_currentState), "Unknown state");
+                throw new ArgumentOutOfRangeException(nameof(_currentState), "State not implemented.");
         }
     }
-
+    
     private void SwitchState(HtmlTokenizerState state, bool reconsume = false)
     {
         _currentState = state;

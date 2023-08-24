@@ -4,7 +4,7 @@ public class TagToken : HTMLToken
 {
     private KeyValuePair<string, string> _currentAttribute;
 
-    public TagToken(HTMLTokenType type) : base(type)
+    protected TagToken(HTMLTokenType type) : base(type)
     {
         TagName = "";
     }
@@ -20,11 +20,10 @@ public class TagToken : HTMLToken
 
     public void NewAttribute(string name = "")
     {
-        if (Attributes.ContainsKey(name))
-            // TODO: Log warning
-            // Attribute already exists, drop it
-            return;
-
+        // FIXME: The name gets built up as the parser reads the attribute name
+        // Which means that the name is not complete until the attribute value is read
+        // This can cause duplicate keys in the Attributes dictionary
+        
         _currentAttribute = new KeyValuePair<string, string>(name, string.Empty);
         Attributes.Add(_currentAttribute.Key, _currentAttribute.Value);
     }
@@ -57,5 +56,10 @@ public class TagToken : HTMLToken
     public void AddAttributeValue(char value)
     {
         AddAttributeValue(new string(value, 1));
+    }
+
+    public override int GetLength()
+    {
+        throw new NotImplementedException("TagToken.GetLength() is not implemented.");
     }
 }
