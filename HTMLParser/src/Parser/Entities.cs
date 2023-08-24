@@ -2239,18 +2239,21 @@ public static class Entities
     public static EntityMatch CodePointsFromEntity(string entity)
     {
         var match = new EntityMatch();
-
+        
         foreach (var singleCodePointEntity in SingleCodePointEntities)
         {
             if (!entity.StartsWith(singleCodePointEntity.Entity)) continue;
 
             if (string.IsNullOrEmpty(match.Entity) || singleCodePointEntity.Entity.Length > match.Entity.Length)
+            {
                 match = new EntityMatch
                 {
                     CodePoints = new[] { singleCodePointEntity.CodePoint },
                     Entity = singleCodePointEntity.Entity,
                     HasMatch = true
                 };
+                break;
+            }
         }
 
         foreach (var doubleCodePointEntity in DoubleCodePointEntities)
@@ -2258,12 +2261,15 @@ public static class Entities
             if (!entity.StartsWith(doubleCodePointEntity.Entity)) continue;
 
             if (string.IsNullOrEmpty(match.Entity) || doubleCodePointEntity.Entity.Length > match.Entity.Length)
+            {
                 match = new EntityMatch
                 {
                     CodePoints = new[] { doubleCodePointEntity.CodePoint1, doubleCodePointEntity.CodePoint2 },
                     Entity = doubleCodePointEntity.Entity,
                     HasMatch = true
                 };
+                break;
+            }
         }
 
         return string.IsNullOrEmpty(match.Entity) ? new EntityMatch() : match;

@@ -3,10 +3,14 @@ using HTML_NET;
 using HTML_NET.Parser;
 using HTML_NET.Parser.Tokens;
 
-var tokenizer =
-    new HTMLTokenizer(new ByteBuffer(File.ReadAllBytes(@"E:\projects\LibHtmlNet\Tests\html_basic_document.html")));
 
-var tokens = new List<HTMLToken>();
+
+var url = "https://html.spec.whatwg.org/multipage/parsing.html#numeric-character-reference-end-state";
+var httpClient = new HttpClient();
+var html = httpClient.GetByteArrayAsync(url).Result;
+
+var tokenizer =
+    new HTMLTokenizer(new ByteBuffer(html));
 
 while (tokenizer.NextToken() is { } token)
 {
@@ -16,4 +20,3 @@ while (tokenizer.NextToken() is { } token)
     }
 }
 
-var x = 0;
