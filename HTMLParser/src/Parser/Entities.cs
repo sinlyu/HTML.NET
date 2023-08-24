@@ -2238,6 +2238,7 @@ public static class Entities
 
     public static EntityMatch CodePointsFromEntity(string entity)
     {
+        // FIX: This is super slow and should be replaced
         var match = new EntityMatch();
         
         foreach (var singleCodePointEntity in SingleCodePointEntities)
