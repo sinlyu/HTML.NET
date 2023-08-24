@@ -23,7 +23,7 @@ public class TagToken : HTMLToken
         // FIXME: The name gets built up as the parser reads the attribute name
         // Which means that the name is not complete until the attribute value is read
         // This can cause duplicate keys in the Attributes dictionary
-        
+
         _currentAttribute = new KeyValuePair<string, string>(name, string.Empty);
         Attributes.Add(_currentAttribute.Key, _currentAttribute.Value);
     }

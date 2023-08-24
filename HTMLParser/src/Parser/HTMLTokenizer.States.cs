@@ -1,5 +1,4 @@
-﻿using System.Runtime.InteropServices.JavaScript;
-using System.Text;
+﻿using System.Text;
 using HTML_NET.Parser.Tokens;
 
 namespace HTML_NET.Parser;
@@ -284,7 +283,7 @@ public partial class HTMLTokenizer
                 LogParseError("unexpected-character-in-attribute-name", CurrentToken<CharacterToken>());
                 CurrentToken<StartTagToken>().AddAttributeName(currentInputCharacter);
                 break;
-            
+
             // Anything else
             // Append the current input character to the current attribute's name.
             default:
@@ -541,11 +540,11 @@ public partial class HTMLTokenizer
                 _temporaryBuffer.Append(currentInputCharacter);
                 SwitchState(HtmlTokenizerState.HexadecimalCharacterReferenceStart);
                 break;
-            
+
             // Anything else
             // Reconsume in the decimal character reference start state.
             default:
-                SwitchState(HtmlTokenizerState.DecimalCharacterReferenceStart, reconsume: true);
+                SwitchState(HtmlTokenizerState.DecimalCharacterReferenceStart, true);
                 break;
         }
     }
@@ -565,7 +564,7 @@ public partial class HTMLTokenizer
                 _characterReferenceCode *= 16;
                 _characterReferenceCode += currentInputCharacter - 0x0030;
                 break;
-            
+
             // ASCII upper hex digit
             // https://infra.spec.whatwg.org/#ascii-upper-hex-digit
             // Multiply the character reference code by 16.
@@ -574,7 +573,7 @@ public partial class HTMLTokenizer
                 _characterReferenceCode *= 16;
                 _characterReferenceCode += currentInputCharacter - 0x0037;
                 break;
-            
+
             // ASCII lower hex digit
             // https://infra.spec.whatwg.org/#ascii-lower-hex-digit
             // Multiply the character reference code by 16.
@@ -583,18 +582,18 @@ public partial class HTMLTokenizer
                 _characterReferenceCode *= 16;
                 _characterReferenceCode += currentInputCharacter - 0x0057;
                 break;
-            
+
             // Switch to the numeric character reference end state.
             case ';':
                 SwitchState(HtmlTokenizerState.NumericCharacterReferenceEnd);
                 break;
-            
+
             // Anything else
             // This is a missing-semicolon-after-character-reference parse error.
             // Reconsume in the numeric character reference end state.
             default:
                 LogParseError("missing-semicolon-after-character-reference", CurrentToken<CharacterToken>());
-                SwitchState(HtmlTokenizerState.NumericCharacterReferenceEnd, reconsume: true);
+                SwitchState(HtmlTokenizerState.NumericCharacterReferenceEnd, true);
                 break;
         }
     }
@@ -608,9 +607,9 @@ public partial class HTMLTokenizer
             // ASCII digit
             // Reconsume in the decimal character reference state.
             case >= '0' and <= '9': // 0-9
-                SwitchState(HtmlTokenizerState.DecimalCharacterReference, reconsume: true);
+                SwitchState(HtmlTokenizerState.DecimalCharacterReference, true);
                 break;
-            
+
             // Anything else
             // This is an absence-of-digits-in-numeric-character-reference parse error.
             // Flush code points consumed as a character reference.
@@ -618,7 +617,7 @@ public partial class HTMLTokenizer
             default:
                 LogParseError("absence-of-digits-in-numeric-character-reference", CurrentToken<CharacterToken>());
                 FlushCodePointsConsumedAsCharacterReference();
-                SwitchState(_returnState, reconsume: true);
+                SwitchState(_returnState, true);
                 break;
         }
     }
@@ -634,7 +633,7 @@ public partial class HTMLTokenizer
             LogParseError("null-character-reference", CurrentToken<CharacterToken>());
             _characterReferenceCode = 0xFFFD;
         }
-        
+
         // If the number is greater than 0x10FFFF, then this is a character-reference-outside-unicode-range parse error.
         // Set the character reference code to 0xFFFD.
         else if (_characterReferenceCode > 0x10FFFF)
@@ -642,7 +641,7 @@ public partial class HTMLTokenizer
             LogParseError("character-reference-outside-unicode-range", CurrentToken<CharacterToken>());
             _characterReferenceCode = 0xFFFD;
         }
-        
+
         // If the number is a surrogate, then this is a surrogate-character-reference parse error.
         // Set the character reference code to 0xFFFD.
         else if (IsSurrogate(_characterReferenceCode))
@@ -650,53 +649,54 @@ public partial class HTMLTokenizer
             LogParseError("surrogate-character-reference", CurrentToken<CharacterToken>());
             _characterReferenceCode = 0xFFFD;
         }
-        
+
         // If the number is a noncharacter, then this is a noncharacter-character-reference parse error.
         else if (IsNonCharacter(_characterReferenceCode))
         {
             LogParseError("noncharacter-character-reference", CurrentToken<CharacterToken>());
         }
-        
+
         // If the number is 0x0D, or a control that's not ASCII whitespace, then this is a control-character-reference parse error.
         else if (_characterReferenceCode == 0x0D ||
-                 IsControl(_characterReferenceCode) && !IsWhiteSpace(_characterReferenceCode))
+                 (IsControl(_characterReferenceCode) && !IsWhiteSpace(_characterReferenceCode)))
         {
             LogParseError("control-character-reference", CurrentToken<CharacterToken>());
-           
+
             // If the number is one of the numbers in the first column of the following table,
             // then find the row with that number in the first column,
             // and set the character reference code to the number in the second column of that row.
-            
-            (int Number, int CodePoint)[] conversionTable = {
-                (0x80, 0x20AC),     // EURO SIGN (€)
-                (0x82, 0x201A),     // SINGLE LOW-9 QUOTATION MARK (‚) 
-                (0x83, 0x0192),     // LATIN SMALL LETTER F WITH HOOK (ƒ)
-                (0x84, 0x201E), 	// DOUBLE LOW-9 QUOTATION MARK („)
-                (0x85, 0x2026),	    // HORIZONTAL ELLIPSIS (…)
-                (0x86, 0x2020), 	// DAGGER (†)
-                (0x87, 0x2021),     // DOUBLE DAGGER (‡)
-                (0x88, 0x02C6),     // MODIFIER LETTER CIRCUMFLEX ACCENT (ˆ)
-                (0x89, 0x2030),     // PER MILLE SIGN (‰)
-                (0x8A, 0x0160),     // LATIN CAPITAL LETTER S WITH CARON (Š) 
-                (0x8B, 0x2039),     // SINGLE LEFT-POINTING ANGLE QUOTATION MARK (‹) 
-                (0x8C, 0x0152),     // LATIN CAPITAL LIGATURE OE (Œ)
-                (0x8E, 0x017D),     // LATIN CAPITAL LETTER Z WITH CARON (Ž)
-                (0x91, 0x2018),     // LEFT SINGLE QUOTATION MARK (‘)
-                (0x92, 0x2019),     // RIGHT SINGLE QUOTATION MARK (’) 
-                (0x93, 0x201C),     // LEFT DOUBLE QUOTATION MARK (“)
-                (0x94, 0x201D),     // RIGHT DOUBLE QUOTATION MARK (”)
-                (0x95, 0x2022),     // BULLET (•)
-                (0x96, 0x2013),     // EN DASH (–)
-                (0x97, 0x2014),     // EM DASH (—)
-                (0x98, 0x02DC),     // SMALL TILDE (˜)
-                (0x99, 0x2122),     // TRADE MARK SIGN (™)
-                (0x9A, 0x0161),     // LATIN SMALL LETTER S WITH CARON (š)
-                (0x9B, 0x203A),     // SINGLE RIGHT-POINTING ANGLE QUOTATION MARK (›)
-                (0x9C, 0x0153),     // LATIN SMALL LIGATURE OE (œ)
-                (0x9E, 0x017E),     // LATIN SMALL LETTER Z WITH CARON (ž)
-                (0x9F, 0x0178)      // LATIN CAPITAL LETTER Y WITH DIAERESIS (Ÿ)
+
+            (int Number, int CodePoint)[] conversionTable =
+            {
+                (0x80, 0x20AC), // EURO SIGN (€)
+                (0x82, 0x201A), // SINGLE LOW-9 QUOTATION MARK (‚) 
+                (0x83, 0x0192), // LATIN SMALL LETTER F WITH HOOK (ƒ)
+                (0x84, 0x201E), // DOUBLE LOW-9 QUOTATION MARK („)
+                (0x85, 0x2026), // HORIZONTAL ELLIPSIS (…)
+                (0x86, 0x2020), // DAGGER (†)
+                (0x87, 0x2021), // DOUBLE DAGGER (‡)
+                (0x88, 0x02C6), // MODIFIER LETTER CIRCUMFLEX ACCENT (ˆ)
+                (0x89, 0x2030), // PER MILLE SIGN (‰)
+                (0x8A, 0x0160), // LATIN CAPITAL LETTER S WITH CARON (Š) 
+                (0x8B, 0x2039), // SINGLE LEFT-POINTING ANGLE QUOTATION MARK (‹) 
+                (0x8C, 0x0152), // LATIN CAPITAL LIGATURE OE (Œ)
+                (0x8E, 0x017D), // LATIN CAPITAL LETTER Z WITH CARON (Ž)
+                (0x91, 0x2018), // LEFT SINGLE QUOTATION MARK (‘)
+                (0x92, 0x2019), // RIGHT SINGLE QUOTATION MARK (’) 
+                (0x93, 0x201C), // LEFT DOUBLE QUOTATION MARK (“)
+                (0x94, 0x201D), // RIGHT DOUBLE QUOTATION MARK (”)
+                (0x95, 0x2022), // BULLET (•)
+                (0x96, 0x2013), // EN DASH (–)
+                (0x97, 0x2014), // EM DASH (—)
+                (0x98, 0x02DC), // SMALL TILDE (˜)
+                (0x99, 0x2122), // TRADE MARK SIGN (™)
+                (0x9A, 0x0161), // LATIN SMALL LETTER S WITH CARON (š)
+                (0x9B, 0x203A), // SINGLE RIGHT-POINTING ANGLE QUOTATION MARK (›)
+                (0x9C, 0x0153), // LATIN SMALL LIGATURE OE (œ)
+                (0x9E, 0x017E), // LATIN SMALL LETTER Z WITH CARON (ž)
+                (0x9F, 0x0178) // LATIN CAPITAL LETTER Y WITH DIAERESIS (Ÿ)
             };
-            
+
             foreach (var (number, codePoint) in conversionTable)
             {
                 if (_characterReferenceCode != number) continue;
@@ -704,7 +704,7 @@ public partial class HTMLTokenizer
                 break;
             }
         }
-        
+
         // Set the temporary buffer to the empty string.
         // Append a code point equal to the character reference code to the temporary buffer.
         // Flush code points consumed as a character reference.
@@ -729,18 +729,18 @@ public partial class HTMLTokenizer
                 _characterReferenceCode *= 10;
                 _characterReferenceCode += currentInputCharacter - 0x0030;
                 break;
-            
+
             // Switch to the numeric character reference end state.
             case ';': // ;
                 SwitchState(HtmlTokenizerState.NumericCharacterReferenceEnd);
                 break;
-            
+
             // Anything else
             // This is a missing-semicolon-after-character-reference parse error.
             // Reconsume in the numeric character reference end state.
             default:
                 LogParseError("missing-semicolon-after-character-reference", CurrentToken<CharacterToken>());
-                SwitchState(HtmlTokenizerState.NumericCharacterReferenceEnd, reconsume: true);
+                SwitchState(HtmlTokenizerState.NumericCharacterReferenceEnd, true);
                 break;
         }
     }
@@ -792,28 +792,28 @@ public partial class HTMLTokenizer
             case ' ': // space
                 SwitchState(HtmlTokenizerState.BeforeAttributeName);
                 break;
-            
+
             // Set the return state to the attribute value (unquoted) state.
             // Switch to the character reference state.
             case '&':
                 _returnState = HtmlTokenizerState.AttributeValueUnquoted;
                 SwitchState(HtmlTokenizerState.CharacterReference);
                 break;
-            
+
             // Switch to the data state.
             // Emit the current tag token.
             case '>':
                 SwitchState(HtmlTokenizerState.Data);
                 EmitToken<TagToken>();
                 break;
-            
+
             // This is an unexpected-null-character parse error.
             // Append a U+FFFD REPLACEMENT CHARACTER character to the current attribute's value.
             case '\0':
                 LogParseError("unexpected-null-character", CurrentToken<CharacterToken>());
                 CurrentToken<StartTagToken>().AddAttributeValue("\uFFFD");
                 break;
-            
+
             // This is an unexpected-character-in-unquoted-attribute-value parse error.
             // Treat it as per the "anything else" entry below.
             // Append the current input character to the current attribute's value.
@@ -825,14 +825,14 @@ public partial class HTMLTokenizer
                 LogParseError("unexpected-character-in-unquoted-attribute-value", CurrentToken<CharacterToken>());
                 CurrentToken<StartTagToken>().AddAttributeValue(currentInputCharacter);
                 break;
-            
+
             // Anything else
             // Append the current input character to the current attribute's value.
             default:
                 CurrentToken<StartTagToken>().AddAttributeValue(currentInputCharacter);
                 break;
         }
-        
+
         // TODO: Implement EOF handling
     }
 
@@ -1111,7 +1111,7 @@ public partial class HTMLTokenizer
         }
     }
 
-    
+
     private void CharacterReferenceState(char currentInputCharacter)
     {
         _temporaryBuffer.Clear();
@@ -1164,10 +1164,10 @@ public partial class HTMLTokenizer
             // then, for historical reasons, flush code points consumed as a character reference and switch to the return state.
 
             Skip(match.Entity.Length);
-            
+
             foreach (var ch in match.Entity)
                 _temporaryBuffer.Append(ch);
-            
+
             // TODO: Implement consumed as part of an attribute
             _temporaryBuffer.Clear();
 
@@ -1207,17 +1207,18 @@ public partial class HTMLTokenizer
                     CurrentToken<CharacterToken>().Data.Append(currentInputCharacter);
                     EmitToken<CharacterToken>(CurrentToken<CharacterToken>().Data.ToString());
                 }
+
                 break;
-            
+
             // This is an unknown-named-character-reference parse error. Reconsume in the return state.
             case ';':
                 LogParseError("unknown-named-character-reference", CurrentToken<CharacterToken>());
-                SwitchState(_returnState, reconsume: true);
+                SwitchState(_returnState, true);
                 break;
-            
+
             // Reconsume in the return state.
             default:
-                SwitchState(_returnState, reconsume: true);
+                SwitchState(_returnState, true);
                 break;
         }
     }
@@ -1311,7 +1312,7 @@ public partial class HTMLTokenizer
             case '=': // =
                 SwitchState(HtmlTokenizerState.BeforeAttributeValue);
                 break;
-            
+
             // Switch to the data state.
             // Emit the current tag token.
             case '>': // >
@@ -1331,7 +1332,7 @@ public partial class HTMLTokenizer
 
         // TODO: Implement EOF handling
     }
-    
+
     // A leading surrogate is a code point that is in the range U+D800 to U+DBFF, inclusive.
     // https://infra.spec.whatwg.org/#leading-surrogate
     private static bool IsLeadingSurrogate(int codePoint)
@@ -1339,7 +1340,7 @@ public partial class HTMLTokenizer
         // TODO: use char instead of int
         return codePoint is >= 0xD800 and <= 0xDBFF;
     }
-    
+
     // A trailing surrogate is a code point that is in the range U+DC00 to U+DFFF, inclusive.
     // https://infra.spec.whatwg.org/#leading-surrogate
     private static bool IsTrailingSurrogate(int codePoint)
@@ -1347,7 +1348,7 @@ public partial class HTMLTokenizer
         // TODO: use char instead of int
         return codePoint is >= 0xDC00 and <= 0xDFFF;
     }
-    
+
     // A surrogate is a leading surrogate or a trailing surrogate.
     // https://infra.spec.whatwg.org/#surrogate
     private static bool IsSurrogate(int codePoint)
@@ -1356,7 +1357,7 @@ public partial class HTMLTokenizer
         return IsLeadingSurrogate(codePoint) ||
                IsTrailingSurrogate(codePoint);
     }
-    
+
     // A scalar value is a code point that is not a surrogate.
     // https://infra.spec.whatwg.org/#scalar-value
     private static bool IsScalarValue(int codePoint)
@@ -1420,10 +1421,10 @@ public partial class HTMLTokenizer
     {
         // TODO: use char instead of int
         // ASCII whitespace is U+0009 TAB, U+000A LF, U+000C FF, U+000D CR, or U+0020 SPACE. 
-        return codePoint is '\t' or '\n' or '\f' or '\r' or ' ';        
+        return codePoint is '\t' or '\n' or '\f' or '\r' or ' ';
     }
 
-    
+
     // https://html.spec.whatwg.org/multipage/parsing.html#flush-code-points-consumed-as-a-character-reference
     private void FlushCodePointsConsumedAsCharacterReference()
     {
@@ -1431,27 +1432,24 @@ public partial class HTMLTokenizer
         // user agent must append to the code point from the buffer to the current attribute's value
         // if the character reference was consumed as part of an attribute, or emit the code point as a character token otherwise.
         if (ConsumedAsPartOfAnAttribute())
-        {
             CurrentToken<TagToken>().AddAttributeValue(_temporaryBuffer.ToString());
-        }
         else
-        {
             EmitToken<CharacterToken>(_temporaryBuffer.ToString());
-        }
         _temporaryBuffer.Clear();
     }
 
     // https://html.spec.whatwg.org/multipage/parsing.html#charref-in-attribute
     private bool ConsumedAsPartOfAnAttribute()
     {
-        return _returnState is 
+        return _returnState is
             HtmlTokenizerState.AttributeValueDoubleQuoted or
-            HtmlTokenizerState.AttributeValueSingleQuoted or 
+            HtmlTokenizerState.AttributeValueSingleQuoted or
             HtmlTokenizerState.AttributeValueUnquoted;
     }
 
     private static void LogParseError(string reason, HTMLToken token)
     {
-        Console.WriteLine($"\u001b[33mParse error\u001b[0m: \u001b[34m{reason}\u001b[0m at \u001b[34m{token.Position}\u001b[0m");
+        Console.WriteLine(
+            $"\u001b[33mParse error\u001b[0m: \u001b[34m{reason}\u001b[0m at \u001b[34m{token.Position}\u001b[0m");
     }
 }

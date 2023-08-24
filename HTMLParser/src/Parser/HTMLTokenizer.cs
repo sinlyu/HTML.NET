@@ -8,12 +8,12 @@ public partial class HTMLTokenizer
     private readonly ByteBuffer _buffer;
     private readonly Dictionary<Type, HTMLToken> _currentTokens;
     private readonly StringBuilder _temporaryBuffer;
+    private int _characterReferenceCode;
 
     private HtmlTokenizerState _currentState;
     private HTMLToken? _nextToken;
 
     private bool _reconsume;
-    private int _characterReferenceCode;
 
     private HtmlTokenizerState _returnState;
 
@@ -167,7 +167,7 @@ public partial class HTMLTokenizer
                 throw new ArgumentOutOfRangeException(nameof(_currentState), "State not implemented.");
         }
     }
-    
+
     private void SwitchState(HtmlTokenizerState state, bool reconsume = false)
     {
         _currentState = state;
@@ -251,10 +251,10 @@ public partial class HTMLTokenizer
 
         // otherwise we create a new token of the specified type
         var token = new T();
-        
+
         // FIXME: I think Position - 1 is correct here, but I'm not sure
         token.Position = _buffer.Position;
-        
+
         _currentTokens.Add(typeof(T), token);
 
         return token;
