@@ -16,7 +16,6 @@ while (tokenizer.NextToken() is { } token)
 {
     if (token.Type == HTMLTokenType.Character)
     {
-        Console.Write(token.Data);
     }
 }
 
