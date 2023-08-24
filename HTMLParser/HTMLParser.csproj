@@ -8,6 +8,7 @@
         <RootNamespace>HTML_NET</RootNamespace>
         <PackageId>HTMLParser</PackageId>
         <PublishAot>true</PublishAot>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
 
     <ItemGroup>

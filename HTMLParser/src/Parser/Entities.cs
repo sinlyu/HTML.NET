@@ -2260,12 +2260,12 @@ public static class Entities
             node.IsWord = true;
         }
         
-        public bool TrySearch(string word, out string entity)
+        public bool TrySearch(Span<byte> word, out string entity)
         {
             var node = _root;
             foreach (var c in word)
             {
-                if (!node.Children.ContainsKey(c))
+                if (!node.Children.ContainsKey((char)c))
                 {
                     if (node.IsWord)
                     {
@@ -2276,7 +2276,7 @@ public static class Entities
                     entity = null;
                     return false;
                 }
-                node = node.Children[c];
+                node = node.Children[(char)c];
             }
 
             entity = node.Entity;
@@ -2296,7 +2296,7 @@ public static class Entities
             trie.Add(entity);
     }
 
-    public static EntityMatch CodePointsFromEntity(string entity)
+    public static EntityMatch CodePointsFromEntity(Span<byte> entity)
     {
         if (!trie.TrySearch(entity, out var entityFromTrie)) return new EntityMatch();
         

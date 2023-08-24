@@ -24,10 +24,16 @@ public class ByteBuffer
     }
 
     [Pure]
-    public byte[] PeekRemainingBytes()
+    public Span<byte> PeekRemainingBytes()
     {
+        // FIXME: this method is super not optimized
+        // Spec says read remaining bytes but thats alot of Array.Copy operations
+        // Or maybe i am reading the spec wrong
+        // For now i capped it at 10
+        
         UnreadByte();
-        return PeekBytes((int)(Length - Position));
+        var count = Math.Max(Length - Position, 10);
+        return PeekBytes((int)count);
     }
 
     [Pure]
@@ -47,14 +53,12 @@ public class ByteBuffer
     }
 
     [Pure]
-    public byte[] PeekBytes(int count)
+    private Span<byte> PeekBytes(int count)
     {
         AssertRead(count);
-        var result = new byte[count];
-        Array.Copy(_data, Position, result, 0, count);
-        return result;
+        return new Span<byte>(_data, (int)Position, count);
     }
-
+    
     public void UnreadByte()
     {
         if (Position <= 0)

@@ -1156,7 +1156,10 @@ public partial class HTMLTokenizer
         // Consume the maximum number of characters possible,
         // where the consumed characters are one of the identifiers in the first column of the named character references table.
         // Append each character to the temporary buffer when it's consumed.
-        var match = Entities.CodePointsFromEntity(Encoding.UTF8.GetString(_buffer.PeekRemainingBytes()));
+        
+        // TODO: this has a lot of allocations, maybe we can do better
+        
+        var match =  Entities.CodePointsFromEntity(_buffer.PeekRemainingBytes());
         if (match.HasMatch)
         {
             // TODO: This is not completely implemented
