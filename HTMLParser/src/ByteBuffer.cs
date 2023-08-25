@@ -20,7 +20,7 @@ public class ByteBuffer
     [Pure]
     public bool IsEndOfBuffer()
     {
-        return !CanPeekByte(1);
+        return Position >= Length;
     }
 
     [Pure]
@@ -43,46 +43,28 @@ public class ByteBuffer
     [Pure]
     public byte PeekByte(int offset = 0)
     {
-        AssertRead();
-        return _data[Position + offset];
+        return _data[(int)Position + offset];
     }
 
     [Pure]
     private Span<byte> PeekBytes(int count)
     {
-        AssertRead(count);
         return new Span<byte>(_data, (int)Position, count);
     }
     
     public void UnreadByte()
     {
-        if (Position <= 0)
-            throw new ArgumentOutOfRangeException(nameof(Position), "Cannot unread byte under position 0");
         Position--;
     }
 
     public void Skip(int count)
     {
-        AssertRead(count);
         Position += count;
     }
 
     [Pure]
     public byte ReadByte()
     {
-        AssertRead();
         return _data[Position++];
-    }
-
-    [Pure]
-    private bool CanPeekByte(int count)
-    {
-        return Position + count <= Length;
-    }
-
-    private void AssertRead(int count = 1)
-    {
-        if (!CanPeekByte(count))
-            throw new ArgumentOutOfRangeException(nameof(Position), "Cannot read past the end of the buffer");
     }
 }

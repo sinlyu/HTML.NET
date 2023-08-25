@@ -67,15 +67,15 @@ public partial class HTMLTokenizer
 
             // Emit the current input character as a character token
             case '\0':
-                var token = CurrentToken<CharacterToken>();
+                var token = CurrentToken(HTMLTokenType.Character);
                 LogParseError("unexpected-null-character", token);
-                EmitToken<CharacterToken>(currentInputCharacter.ToString());
+                EmitToken(HTMLTokenType.Character, currentInputCharacter.ToString());
                 break;
 
             // Anything else
             default:
                 // Emit the current input character as a character token
-                EmitToken<CharacterToken>(currentInputCharacter);
+                EmitToken(HTMLTokenType.Character, currentInputCharacter);
                 break;
         }
 
@@ -102,23 +102,23 @@ public partial class HTMLTokenizer
             // Create a new start tag token, set its tag name to the empty string. Reconsume in the tag name state.
             case >= 'A' and <= 'Z': // A-Z
             case >= 'a' and <= 'z': // a-z
-                CurrentToken<StartTagToken>();
+                CurrentToken(HTMLTokenType.StartTag);
                 SwitchState(HtmlTokenizerState.TagName, true);
                 break;
 
             // This is an unexpected-question-mark-instead-of-tag-name parse error.
             // Create a comment token whose data is the empty string. Reconsume in the bogus comment state.
             case '?': // ?
-                LogParseError("unexpected-question-mark-instead-of-tag-name", CurrentToken<CommentToken>());
-                EmitToken<CommentToken>();
+                LogParseError("unexpected-question-mark-instead-of-tag-name", CurrentToken(HTMLTokenType.Comment));
+                EmitToken(HTMLTokenType.Comment);
                 SwitchState(HtmlTokenizerState.BogusComment, true);
                 break;
 
             // This is an invalid-first-character-of-tag-name parse error.
             // Emit a U+003C LESS-THAN SIGN character token. Reconsume in the data state.
             default:
-                LogParseError("invalid-first-character-of-tag-name", CurrentToken<CharacterToken>());
-                EmitToken<CharacterToken>('<');
+                LogParseError("invalid-first-character-of-tag-name", CurrentToken(HTMLTokenType.Character));
+                EmitToken(HTMLTokenType.Character, '<');
                 SwitchState(HtmlTokenizerState.Data, true);
                 break;
         }
@@ -136,14 +136,14 @@ public partial class HTMLTokenizer
             // Reconsume in the tag name state.
             case >= 'A' and <= 'Z': // A-Z
             case >= 'a' and <= 'z': // a-z
-                CurrentToken<EndTagToken>();
+                CurrentToken(HTMLTokenType.EndTag);
                 SwitchState(HtmlTokenizerState.TagName, true);
                 break;
 
             // This is a missing-end-tag-name parse error.
             // Switch to the data state.
             case '>': // >
-                LogParseError("missing-end-tag-name", CurrentToken<CharacterToken>());
+                LogParseError("missing-end-tag-name", CurrentToken(HTMLTokenType.Character));
                 SwitchState(HtmlTokenizerState.Data);
                 break;
 
@@ -151,8 +151,8 @@ public partial class HTMLTokenizer
             // Create a comment token whose data is the empty string.
             // Reconsume in the bogus comment state.
             default:
-                LogParseError("invalid-first-character-of-tag-name", CurrentToken<CommentToken>());
-                EmitToken<CommentToken>();
+                LogParseError("invalid-first-character-of-tag-name", CurrentToken(HTMLTokenType.Comment));
+                EmitToken(HTMLTokenType.Comment);
                 SwitchState(HtmlTokenizerState.BogusComment);
                 break;
         }
@@ -181,20 +181,20 @@ public partial class HTMLTokenizer
 
             // Switch to the data state. Emit the current tag token.
             case '>': // >
-                EmitToken<TagToken>();
+                EmitToken(HTMLTokenType.Tag);
                 SwitchState(HtmlTokenizerState.Data);
                 break;
 
             // ASCII upper alpha character
             // Append the lowercase version of the current input character (add 0x0020 to the character's code point) to the current tag token's tag name.
             case >= 'A' and <= 'Z': // A-Z
-                CurrentToken<TagToken>().TagName += currentInputCharacter + 0x20;
+                CurrentToken(HTMLTokenType.Tag).TagName += currentInputCharacter + 0x20;
                 break;
 
             // Anything else
             // Append the current input character to the current tag token's tag name.
             default:
-                CurrentToken<TagToken>().TagName += currentInputCharacter;
+                CurrentToken(HTMLTokenType.Tag).TagName += currentInputCharacter;
                 break;
         }
 
@@ -224,8 +224,8 @@ public partial class HTMLTokenizer
             // Start a new attribute in the current tag token. Set that attribute's name to the current input character,
             // and its value to the empty string. Switch to the attribute name state.
             case '=': // =
-                LogParseError("unexpected-equals-sign-before-attribute-name", CurrentToken<CharacterToken>());
-                CurrentToken<StartTagToken>().NewAttribute(currentInputCharacter);
+                LogParseError("unexpected-equals-sign-before-attribute-name", CurrentToken(HTMLTokenType.Character));
+                CurrentToken(HTMLTokenType.StartTag).NewAttribute(currentInputCharacter);
                 SwitchState(HtmlTokenizerState.AttributeName);
                 break;
 
@@ -233,7 +233,7 @@ public partial class HTMLTokenizer
             // Start a new attribute in the current tag token.
             // Set that attribute's name and value to the empty string.
             default:
-                CurrentToken<StartTagToken>().NewAttribute();
+                CurrentToken(HTMLTokenType.StartTag).NewAttribute();
                 SwitchState(HtmlTokenizerState.AttributeName, true);
                 break;
         }
@@ -265,14 +265,14 @@ public partial class HTMLTokenizer
             // ASCII upper alpha character
             // Append the lowercase version of the current input character (add 0x0020 to the character's code point) to the current attribute's name.
             case >= 'A' and <= 'Z': // A-Z
-                CurrentToken<StartTagToken>().AddAttributeName((char)(currentInputCharacter + 0x20));
+                CurrentToken(HTMLTokenType.StartTag).AddAttributeName((char)(currentInputCharacter + 0x20));
                 break;
 
             // This is an unexpected-null-character parse error.
             // Append a U+FFFD REPLACEMENT CHARACTER character to the current attribute's name.
             case '\0': // NULL
-                LogParseError("unexpected-null-character", CurrentToken<CharacterToken>());
-                CurrentToken<StartTagToken>().AddAttributeName("\uFFFD");
+                LogParseError("unexpected-null-character", CurrentToken(HTMLTokenType.Character));
+                CurrentToken(HTMLTokenType.StartTag).AddAttributeName("\uFFFD");
                 break;
 
             // This is an unexpected-character-in-attribute-name parse error.
@@ -280,14 +280,14 @@ public partial class HTMLTokenizer
             case '"': // "
             case '\'': // '
             case '<': // <
-                LogParseError("unexpected-character-in-attribute-name", CurrentToken<CharacterToken>());
-                CurrentToken<StartTagToken>().AddAttributeName(currentInputCharacter);
+                LogParseError("unexpected-character-in-attribute-name", CurrentToken(HTMLTokenType.Character));
+                CurrentToken(HTMLTokenType.StartTag).AddAttributeName(currentInputCharacter);
                 break;
 
             // Anything else
             // Append the current input character to the current attribute's name.
             default:
-                CurrentToken<StartTagToken>().AddAttributeName(currentInputCharacter);
+                CurrentToken(HTMLTokenType.StartTag).AddAttributeName(currentInputCharacter);
                 break;
         }
     }
@@ -301,7 +301,7 @@ public partial class HTMLTokenizer
         if (currentInputCharacter == '-' && _buffer.PeekByte() == '-')
         {
             Skip(1);
-            CurrentToken<CommentToken>();
+            CurrentToken(HTMLTokenType.Comment);
             SwitchState(HtmlTokenizerState.CommentStart);
         }
 
@@ -328,8 +328,8 @@ public partial class HTMLTokenizer
         // Switch to the bogus comment state (don't consume anything in the current state).
         else
         {
-            LogParseError("incorrectly-opened-comment", CurrentToken<CommentToken>());
-            CurrentToken<CommentToken>();
+            LogParseError("incorrectly-opened-comment", CurrentToken(HTMLTokenType.Comment));
+            CurrentToken(HTMLTokenType.Comment);
             SwitchState(HtmlTokenizerState.BogusComment);
         }
     }
@@ -357,7 +357,7 @@ public partial class HTMLTokenizer
             // This is a missing-whitespace-before-doctype-name parse error.
             // Reconsume in the before DOCTYPE name state.
             default:
-                LogParseError("missing-whitespace-before-doctype-name", CurrentToken<CharacterToken>());
+                LogParseError("missing-whitespace-before-doctype-name", CurrentToken(HTMLTokenType.Character));
                 SwitchState(HtmlTokenizerState.BeforeDocTypeName, true);
                 break;
         }
@@ -382,7 +382,7 @@ public partial class HTMLTokenizer
             // Create a new DOCTYPE token. Set its name to the lowercase version of the current input character (add 0x0020 to the character's code point).
             // Switch to the DOCTYPE name state.
             case >= 'A' and <= 'Z': // A-Z
-                CurrentToken<DOCTYPEToken>().Name =
+                CurrentToken(HTMLTokenType.DOCTYPE).Name =
                     Encoding.UTF8.GetString(new[] { (byte)(currentInputCharacter + 0x20) });
                 SwitchState(HtmlTokenizerState.DocTypeName);
                 break;
@@ -391,8 +391,8 @@ public partial class HTMLTokenizer
             // Create a new DOCTYPE token. Set its name to a U+FFFD REPLACEMENT CHARACTER character.
             // Switch to the DOCTYPE name state.
             case '\0': // NULL
-                CurrentToken<DOCTYPEToken>().ForceQuirks = true;
-                EmitToken<DOCTYPEToken>();
+                CurrentToken(HTMLTokenType.DOCTYPE).ForceQuirks = true;
+                EmitToken(HTMLTokenType.DOCTYPE);
                 SwitchState(HtmlTokenizerState.Data);
                 break;
 
@@ -401,8 +401,8 @@ public partial class HTMLTokenizer
             // Emit the token.
             // Switch to the data state.
             case '>': // >
-                CurrentToken<DOCTYPEToken>().ForceQuirks = true;
-                EmitToken<DOCTYPEToken>();
+                CurrentToken(HTMLTokenType.DOCTYPE).ForceQuirks = true;
+                EmitToken(HTMLTokenType.DOCTYPE);
                 SwitchState(HtmlTokenizerState.Data);
                 break;
 
@@ -410,7 +410,7 @@ public partial class HTMLTokenizer
             // Create a new DOCTYPE token. Set its name to the current input character.
             // Switch to the DOCTYPE name state.
             default:
-                CurrentToken<DOCTYPEToken>().Name = currentInputCharacter.ToString();
+                CurrentToken(HTMLTokenType.DOCTYPE).Name = currentInputCharacter.ToString();
                 SwitchState(HtmlTokenizerState.DocTypeName);
                 break;
         }
@@ -432,27 +432,27 @@ public partial class HTMLTokenizer
             // Switch to the data state.
             // Emit the current DOCTYPE token.
             case '>': // >
-                EmitToken<DOCTYPEToken>();
+                EmitToken(HTMLTokenType.DOCTYPE);
                 SwitchState(HtmlTokenizerState.Data);
                 break;
 
             // ASCII upper alpha character
             // Append the lowercase version of the current input character (add 0x0020 to the character's code point) to the current DOCTYPE token's name.
             case >= 'A' and <= 'Z': // A-Z
-                CurrentToken<DOCTYPEToken>().Name += (char)(currentInputCharacter + 0x20);
+                CurrentToken(HTMLTokenType.DOCTYPE).Name += (char)(currentInputCharacter + 0x20);
                 break;
 
             // This is an unexpected-null-character parse error.
             // Append a U+FFFD REPLACEMENT CHARACTER character to the current DOCTYPE token's name.
             case '\0': // NULL
-                LogParseError("unexpected-null-character", CurrentToken<CharacterToken>());
-                CurrentToken<DOCTYPEToken>().Name += "\uFFFD";
+                LogParseError("unexpected-null-character", CurrentToken(HTMLTokenType.Character));
+                CurrentToken(HTMLTokenType.DOCTYPE).Name += "\uFFFD";
                 break;
 
             // Anything else
             // Append the current input character to the current DOCTYPE token's name.
             default:
-                CurrentToken<DOCTYPEToken>().Name += currentInputCharacter;
+                CurrentToken(HTMLTokenType.DOCTYPE).Name += currentInputCharacter;
                 break;
         }
 
@@ -486,9 +486,9 @@ public partial class HTMLTokenizer
                 // This is a missing-attribute-value parse error.
                 // Switch to the data state.
                 // Emit the current tag token.
-                LogParseError("missing-attribute-value", CurrentToken<CharacterToken>());
+                LogParseError("missing-attribute-value", CurrentToken(HTMLTokenType.Tag));
                 SwitchState(HtmlTokenizerState.Data);
-                EmitToken<TagToken>();
+                EmitToken(HTMLTokenType.Tag);
                 break;
 
             // Reconsume in the attribute value (unquoted) state.
@@ -514,7 +514,7 @@ public partial class HTMLTokenizer
             // Emit the comment token.
             case '>': // >
                 SwitchState(HtmlTokenizerState.Data);
-                EmitToken<CommentToken>();
+                EmitToken(HTMLTokenType.Comment);
                 break;
 
             // Anything else
@@ -592,7 +592,7 @@ public partial class HTMLTokenizer
             // This is a missing-semicolon-after-character-reference parse error.
             // Reconsume in the numeric character reference end state.
             default:
-                LogParseError("missing-semicolon-after-character-reference", CurrentToken<CharacterToken>());
+                LogParseError("missing-semicolon-after-character-reference", CurrentToken(HTMLTokenType.Character));
                 SwitchState(HtmlTokenizerState.NumericCharacterReferenceEnd, true);
                 break;
         }
@@ -615,7 +615,7 @@ public partial class HTMLTokenizer
             // Flush code points consumed as a character reference.
             // Reconsume in the return state.
             default:
-                LogParseError("absence-of-digits-in-numeric-character-reference", CurrentToken<CharacterToken>());
+                LogParseError("absence-of-digits-in-numeric-character-reference", CurrentToken(HTMLTokenType.Character));
                 FlushCodePointsConsumedAsCharacterReference();
                 SwitchState(_returnState, true);
                 break;
@@ -630,7 +630,7 @@ public partial class HTMLTokenizer
         // Set the character reference code to 0xFFFD.
         if (_characterReferenceCode == 0x00)
         {
-            LogParseError("null-character-reference", CurrentToken<CharacterToken>());
+            LogParseError("null-character-reference", CurrentToken(HTMLTokenType.Character));
             _characterReferenceCode = 0xFFFD;
         }
 
@@ -638,7 +638,7 @@ public partial class HTMLTokenizer
         // Set the character reference code to 0xFFFD.
         else if (_characterReferenceCode > 0x10FFFF)
         {
-            LogParseError("character-reference-outside-unicode-range", CurrentToken<CharacterToken>());
+            LogParseError("character-reference-outside-unicode-range", CurrentToken(HTMLTokenType.Character));
             _characterReferenceCode = 0xFFFD;
         }
 
@@ -646,21 +646,21 @@ public partial class HTMLTokenizer
         // Set the character reference code to 0xFFFD.
         else if (IsSurrogate(_characterReferenceCode))
         {
-            LogParseError("surrogate-character-reference", CurrentToken<CharacterToken>());
+            LogParseError("surrogate-character-reference", CurrentToken(HTMLTokenType.Character));
             _characterReferenceCode = 0xFFFD;
         }
 
         // If the number is a noncharacter, then this is a noncharacter-character-reference parse error.
         else if (IsNonCharacter(_characterReferenceCode))
         {
-            LogParseError("noncharacter-character-reference", CurrentToken<CharacterToken>());
+            LogParseError("noncharacter-character-reference", CurrentToken(HTMLTokenType.Character));
         }
 
         // If the number is 0x0D, or a control that's not ASCII whitespace, then this is a control-character-reference parse error.
         else if (_characterReferenceCode == 0x0D ||
                  (IsControl(_characterReferenceCode) && !IsWhiteSpace(_characterReferenceCode)))
         {
-            LogParseError("control-character-reference", CurrentToken<CharacterToken>());
+            LogParseError("control-character-reference", CurrentToken(HTMLTokenType.Character));
 
             // If the number is one of the numbers in the first column of the following table,
             // then find the row with that number in the first column,
@@ -741,7 +741,7 @@ public partial class HTMLTokenizer
             // This is a missing-semicolon-after-character-reference parse error.
             // Reconsume in the numeric character reference end state.
             default:
-                LogParseError("missing-semicolon-after-character-reference", CurrentToken<CharacterToken>());
+                LogParseError("missing-semicolon-after-character-reference", CurrentToken(HTMLTokenType.Character));
                 SwitchState(HtmlTokenizerState.NumericCharacterReferenceEnd, true);
                 break;
         }
@@ -756,7 +756,7 @@ public partial class HTMLTokenizer
             // Append the current input character to the comment token's data.
             // Switch to the comment less-than sign state.
             case '<': // <
-                CurrentToken<CommentToken>().Data.Append(currentInputCharacter);
+                CurrentToken(HTMLTokenType.Comment).Data.Append(currentInputCharacter);
                 SwitchState(HtmlTokenizerState.CommentLessThanSign);
                 break;
 
@@ -768,13 +768,13 @@ public partial class HTMLTokenizer
             // This is an unexpected-null-character parse error.
             // Append a U+FFFD REPLACEMENT CHARACTER character to the comment token's data.
             case '\0': // NULL
-                CurrentToken<CommentToken>().Data.Append('\uFFFD');
+                CurrentToken(HTMLTokenType.Comment).Data.Append('\uFFFD');
                 break;
 
             // Anything else
             // Append the current input character to the comment token's data.
             default:
-                CurrentToken<CommentToken>().Data.Append(currentInputCharacter);
+                CurrentToken(HTMLTokenType.Comment).Data.Append(currentInputCharacter);
                 break;
         }
 
@@ -806,14 +806,14 @@ public partial class HTMLTokenizer
             // Emit the current tag token.
             case '>':
                 SwitchState(HtmlTokenizerState.Data);
-                EmitToken<TagToken>();
+                EmitToken(HTMLTokenType.Tag);
                 break;
 
             // This is an unexpected-null-character parse error.
             // Append a U+FFFD REPLACEMENT CHARACTER character to the current attribute's value.
             case '\0':
-                LogParseError("unexpected-null-character", CurrentToken<CharacterToken>());
-                CurrentToken<StartTagToken>().AddAttributeValue("\uFFFD");
+                LogParseError("unexpected-null-character", CurrentToken(HTMLTokenType.StartTag));
+                CurrentToken(HTMLTokenType.StartTag).AddAttributeValue("\uFFFD");
                 break;
 
             // This is an unexpected-character-in-unquoted-attribute-value parse error.
@@ -824,14 +824,14 @@ public partial class HTMLTokenizer
             case '<':
             case '=':
             case '`':
-                LogParseError("unexpected-character-in-unquoted-attribute-value", CurrentToken<CharacterToken>());
-                CurrentToken<StartTagToken>().AddAttributeValue(currentInputCharacter);
+                LogParseError("unexpected-character-in-unquoted-attribute-value", CurrentToken(HTMLTokenType.StartTag));
+                CurrentToken(HTMLTokenType.StartTag).AddAttributeValue(currentInputCharacter);
                 break;
 
             // Anything else
             // Append the current input character to the current attribute's value.
             default:
-                CurrentToken<StartTagToken>().AddAttributeValue(currentInputCharacter);
+                CurrentToken(HTMLTokenType.StartTag).AddAttributeValue(currentInputCharacter);
                 break;
         }
 
@@ -859,14 +859,14 @@ public partial class HTMLTokenizer
             // This is an unexpected-null-character parse error.
             // Append a U+FFFD REPLACEMENT CHARACTER character to the current attribute's value.
             case '\0':
-                LogParseError("unexpected-null-character", CurrentToken<CharacterToken>());
-                CurrentToken<StartTagToken>().AddAttributeValue("\uFFFD");
+                LogParseError("unexpected-null-character", CurrentToken(HTMLTokenType.StartTag));
+                CurrentToken(HTMLTokenType.StartTag).AddAttributeValue("\uFFFD");
                 break;
 
             // Anything else
             // Append the current input character to the current attribute's value.
             default:
-                CurrentToken<StartTagToken>().AddAttributeValue(currentInputCharacter);
+                CurrentToken(HTMLTokenType.StartTag).AddAttributeValue(currentInputCharacter);
                 break;
         }
     }
@@ -892,13 +892,13 @@ public partial class HTMLTokenizer
             case '\0': // NULL
                 // This is an unexpected-null-character parse error.
                 // Append a U+FFFD REPLACEMENT CHARACTER character to the current attribute value.
-                CurrentToken<StartTagToken>().AddAttributeValue("\uFFFD");
+                CurrentToken(HTMLTokenType.StartTag).AddAttributeValue("\uFFFD");
                 break;
 
             // Anything else
             // Append the current input character to the current attribute value.
             default:
-                CurrentToken<StartTagToken>().AddAttributeValue(currentInputCharacter);
+                CurrentToken(HTMLTokenType.StartTag).AddAttributeValue(currentInputCharacter);
                 break;
         }
     }
@@ -907,7 +907,7 @@ public partial class HTMLTokenizer
     // https://html.spec.whatwg.org/multipage/parsing.html#after-attribute-value-(quoted)-state
     private void AfterAttributeValueQuotedState(char currentInputCharacter)
     {
-        CurrentToken<TagToken>().FinishAttribute();
+        CurrentToken(HTMLTokenType.Tag).FinishAttribute();
         
         switch (currentInputCharacter)
         {
@@ -927,7 +927,7 @@ public partial class HTMLTokenizer
             // Switch to the data state.
             case '>': // >
                 SwitchState(HtmlTokenizerState.Data);
-                EmitToken<TagToken>();
+                EmitToken(HTMLTokenType.Tag);
                 break;
 
             // Anything else
@@ -956,7 +956,7 @@ public partial class HTMLTokenizer
             // Append a U+002D HYPHEN-MINUS character (-) to the comment token's data.
             // Reconsume in the comment state.
             default:
-                CurrentToken<CommentToken>().Data.Append('-');
+                CurrentToken(HTMLTokenType.Comment).Data.Append('-');
                 SwitchState(HtmlTokenizerState.Comment, true);
                 break;
         }
@@ -974,7 +974,7 @@ public partial class HTMLTokenizer
             // Emit the current comment token.
             case '>': // >
                 SwitchState(HtmlTokenizerState.Data);
-                EmitToken<CommentToken>(CurrentToken<CommentToken>().Data.ToString());
+                EmitToken(HTMLTokenType.Comment, CurrentToken(HTMLTokenType.Comment).Data.ToString());
                 break;
 
             // Switch to the comment end bang state.
@@ -984,13 +984,13 @@ public partial class HTMLTokenizer
 
             // Append a U+002D HYPHEN-MINUS character (-) to the comment token's data.
             case '-': // -
-                CurrentToken<CommentToken>().Data.Append('-');
+                CurrentToken(HTMLTokenType.Comment).Data.Append('-');
                 break;
 
             // Append two U+002D HYPHEN-MINUS characters (-) to the comment token's data.
             // Reconsume in the comment state.
             default:
-                CurrentToken<CommentToken>().Data.Append("--");
+                CurrentToken(HTMLTokenType.Comment).Data.Append("--");
                 SwitchState(HtmlTokenizerState.Comment, true);
                 break;
         }
@@ -1005,7 +1005,7 @@ public partial class HTMLTokenizer
             // Append two U+002D HYPHEN-MINUS characters (-) and a U+0021 EXCLAMATION MARK character (!) to the comment token's data.
             // Switch to the comment end dash state.
             case '-': // -
-                CurrentToken<CommentToken>().Data.Append("--!");
+                CurrentToken(HTMLTokenType.Comment).Data.Append("--!");
                 SwitchState(HtmlTokenizerState.CommentEndDash);
                 break;
 
@@ -1013,16 +1013,16 @@ public partial class HTMLTokenizer
             // Switch to the data state.
             // Emit the current comment token.
             case '>': // >
-                LogParseError("incorrectly-closed-comment", CurrentToken<CommentToken>());
+                LogParseError("incorrectly-closed-comment", CurrentToken(HTMLTokenType.Comment));
                 SwitchState(HtmlTokenizerState.Data);
-                EmitToken<CommentToken>();
+                EmitToken(HTMLTokenType.Comment);
                 break;
 
             // Anything else
             // Append two U+002D HYPHEN-MINUS characters (-) and a U+0021 EXCLAMATION MARK character (!) to the comment token's data.
             // Reconsume in the comment state. 
             default:
-                CurrentToken<CommentToken>().Data.Append("--!");
+                CurrentToken(HTMLTokenType.Comment).Data.Append("--!");
                 SwitchState(HtmlTokenizerState.Comment, true);
                 break;
         }
@@ -1045,15 +1045,15 @@ public partial class HTMLTokenizer
             // Switch to the data state.
             // Emit the current comment token.
             case '>': // >
-                LogParseError("abrupt-closing-of-empty-comment", CurrentToken<CommentToken>());
+                LogParseError("abrupt-closing-of-empty-comment", CurrentToken(HTMLTokenType.Comment));
                 SwitchState(HtmlTokenizerState.Data);
-                EmitToken<CommentToken>();
+                EmitToken(HTMLTokenType.Comment);
                 break;
 
             // Append a U+002D HYPHEN-MINUS character (-) to the comment token's data.
             // Reconsume in the comment state.
             default:
-                CurrentToken<CommentToken>().Data.Append('-');
+                CurrentToken(HTMLTokenType.Comment).Data.Append('-');
                 SwitchState(HtmlTokenizerState.Comment, true);
                 break;
         }
@@ -1069,20 +1069,20 @@ public partial class HTMLTokenizer
             // Emit the current comment token.
             case '>': // >
                 SwitchState(HtmlTokenizerState.Data);
-                EmitToken<CommentToken>();
+                EmitToken(HTMLTokenType.Comment);
                 break;
 
             // This is an unexpected-null-character parse error.
             // Append a U+FFFD REPLACEMENT CHARACTER character to the comment token's data.
             case '\0': // NULL
-                LogParseError("unexpected-null-character", CurrentToken<CommentToken>());
-                CurrentToken<CommentToken>().Data.Append('\uFFFD');
+                LogParseError("unexpected-null-character", CurrentToken(HTMLTokenType.Comment));
+                CurrentToken(HTMLTokenType.Comment).Data.Append('\uFFFD');
                 break;
 
             // Anything else
             // Append the current input character to the comment token's data.
             default:
-                CurrentToken<CommentToken>().Data.Append(currentInputCharacter);
+                CurrentToken(HTMLTokenType.Comment).Data.Append(currentInputCharacter);
                 break;
         }
 
@@ -1098,13 +1098,13 @@ public partial class HTMLTokenizer
             // Append the current input character to the comment token's data.
             // Switch to the comment less-than sign bang state.
             case '!': // !
-                CurrentToken<CommentToken>().Data.Append(currentInputCharacter);
+                CurrentToken(HTMLTokenType.Comment).Data.Append(currentInputCharacter);
                 SwitchState(HtmlTokenizerState.CommentLessThanSignBang);
                 break;
 
             // Append the current input character to the comment token's data.
             case '<': // <
-                CurrentToken<CommentToken>().Data.Append(currentInputCharacter);
+                CurrentToken(HTMLTokenType.Comment).Data.Append(currentInputCharacter);
                 break;
 
             // Anything else
@@ -1205,19 +1205,19 @@ public partial class HTMLTokenizer
             case >= '0' and <= '9': // 0-9
                 if (ConsumedAsPartOfAnAttribute())
                 {
-                    CurrentToken<TagToken>().AddAttributeValue(currentInputCharacter);
+                    CurrentToken(HTMLTokenType.Tag).AddAttributeValue(currentInputCharacter);
                 }
                 else
                 {
-                    CurrentToken<CharacterToken>().Data.Append(currentInputCharacter);
-                    EmitToken<CharacterToken>(CurrentToken<CharacterToken>().Data.ToString());
+                    CurrentToken(HTMLTokenType.Character).Data.Append(currentInputCharacter);
+                    EmitToken(HTMLTokenType.Character, CurrentToken(HTMLTokenType.Character).Data.ToString());
                 }
 
                 break;
 
             // This is an unknown-named-character-reference parse error. Reconsume in the return state.
             case ';':
-                LogParseError("unknown-named-character-reference", CurrentToken<CharacterToken>());
+                LogParseError("unknown-named-character-reference", CurrentToken(HTMLTokenType.Character));
                 SwitchState(_returnState, true);
                 break;
 
@@ -1262,7 +1262,7 @@ public partial class HTMLTokenizer
             // This is a nested-comment parse error.
             // Reconsume in the comment end state.
             default:
-                LogParseError("nested-comment", CurrentToken<CommentToken>());
+                LogParseError("nested-comment", CurrentToken(HTMLTokenType.Comment));
                 SwitchState(HtmlTokenizerState.CommentEnd, true);
                 break;
         }
@@ -1280,16 +1280,16 @@ public partial class HTMLTokenizer
             // Switch to the data state.
             // Emit the current tag token.
             case '>': // >
-                CurrentToken<StartTagToken>().SelfClosing = true;
+                CurrentToken(HTMLTokenType.StartTag).SelfClosing = true;
                 SwitchState(HtmlTokenizerState.Data);
-                EmitToken<TagToken>();
+                EmitToken(HTMLTokenType.Tag);
                 break;
 
             // Anything else
             // This is an unexpected-solidus-in-tag parse error.
             // Reconsume in the before attribute name state.
             default:
-                LogParseError("unexpected-solidus-in-tag", CurrentToken<CharacterToken>());
+                LogParseError("unexpected-solidus-in-tag", CurrentToken(HTMLTokenType.Tag));
                 SwitchState(HtmlTokenizerState.BeforeAttributeName, true);
                 break;
         }
@@ -1299,7 +1299,7 @@ public partial class HTMLTokenizer
     // https://html.spec.whatwg.org/multipage/parsing.html#after-attribute-name-state
     private void AfterAttributeNameState(char currentInputCharacter)
     {
-        CurrentToken<TagToken>().FinishAttribute();
+        CurrentToken(HTMLTokenType.Tag).FinishAttribute();
         
         switch (currentInputCharacter)
         {
@@ -1324,7 +1324,7 @@ public partial class HTMLTokenizer
             // Emit the current tag token.
             case '>': // >
                 SwitchState(HtmlTokenizerState.Data);
-                EmitToken<TagToken>();
+                EmitToken(HTMLTokenType.Tag);
                 break;
 
             // Anything else
@@ -1332,7 +1332,7 @@ public partial class HTMLTokenizer
             // Set that attribute name and value to the empty string.
             // Reconsume in the attribute name state.
             default:
-                CurrentToken<StartTagToken>().NewAttribute();
+                CurrentToken(HTMLTokenType.Tag).NewAttribute();
                 SwitchState(HtmlTokenizerState.AttributeName, true);
                 break;
         }
@@ -1439,9 +1439,9 @@ public partial class HTMLTokenizer
         // user agent must append to the code point from the buffer to the current attribute's value
         // if the character reference was consumed as part of an attribute, or emit the code point as a character token otherwise.
         if (ConsumedAsPartOfAnAttribute())
-            CurrentToken<TagToken>().AddAttributeValue(_temporaryBuffer.ToString());
+            CurrentToken(HTMLTokenType.Tag).AddAttributeValue(_temporaryBuffer.ToString());
         else
-            EmitToken<CharacterToken>(_temporaryBuffer.ToString());
+            EmitToken(HTMLTokenType.Character, _temporaryBuffer.ToString());
         _temporaryBuffer.Clear();
     }
 

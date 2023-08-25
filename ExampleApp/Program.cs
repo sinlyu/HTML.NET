@@ -17,9 +17,11 @@ var sw = Stopwatch.StartNew();
 var tokenizer =
     new HTMLTokenizer(new ByteBuffer(html));
 
+var tokens = new List<HTMLToken>();
+
 while (tokenizer.NextToken() is { } token)
 {
-
+    tokens.Add(token);
 }
 sw.Stop();
 

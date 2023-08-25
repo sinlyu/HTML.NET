@@ -6,7 +6,7 @@ namespace HTML_NET.Parser;
 public partial class HTMLTokenizer
 {
     private readonly ByteBuffer _buffer;
-    private readonly Dictionary<Type, HTMLToken> _currentTokens;
+    private readonly HTMLToken _currentToken;
     private readonly StringBuilder _temporaryBuffer;
     private int _characterReferenceCode;
 
@@ -20,7 +20,7 @@ public partial class HTMLTokenizer
     public HTMLTokenizer(ByteBuffer buffer)
     {
         _buffer = buffer;
-        _currentTokens = new Dictionary<Type, HTMLToken>();
+        _currentToken = new HTMLToken(HTMLTokenType.DOCTYPE);
         _currentState = HtmlTokenizerState.Data;
         _returnState = HtmlTokenizerState.Data;
         _temporaryBuffer = new StringBuilder();
@@ -219,55 +219,40 @@ public partial class HTMLTokenizer
         return _nextToken != null;
     }
 
-    private void EmitToken<T>() where T : HTMLToken, new()
+    private void EmitToken(HTMLTokenType type)
     {
-        EmitToken<T>(string.Empty);
+        EmitToken(type, string.Empty);
     }
 
-    private void EmitToken<T>(char currentInputCharacter) where T : HTMLToken, new()
+    private void EmitToken(HTMLTokenType type, char currentInputCharacter)
     {
-        EmitToken<T>(currentInputCharacter.ToString());
+        EmitToken(type, currentInputCharacter.ToString());
     }
 
-    private void EmitToken<T>(string data) where T : HTMLToken, new()
+    private void EmitToken(HTMLTokenType type, string data)
     {
-        var token = CurrentToken<T>();
+        var token = CurrentToken(type);
         token.Data.Append(data);
-
         _nextToken = token;
-        _currentTokens.Remove(typeof(T));
+        
     }
+
 
     
-    private T CurrentToken<T>() where T : HTMLToken, new()
+    private HTMLToken CurrentToken(HTMLTokenType type)
     {
-        // if parent class of token is TagToken, we set type to TagToken
-        if (typeof(T).IsSubclassOf(typeof(TagToken))) return CurrentToken<T>(typeof(TagToken));
+        if (_currentToken.Type == type) return _currentToken;
+        
+        // reset current token
+        _currentToken.Data.Clear();
+        _currentToken.Name = string.Empty;
+        _currentToken.TagName = string.Empty;
+        _currentToken.ForceQuirks = false;
+        _currentToken.SelfClosing = false;
+        _currentToken.Attributes.Clear();
+        _currentToken.NewAttribute(string.Empty);
+        _currentToken.Type = type;
 
-        // if we already have a token of the specified type, we return it
-        if (_currentTokens.TryGetValue(typeof(T), out var value)) return (T)value;
-
-        // otherwise we create a new token of the specified type
-        var token = new T();
-
-        // FIXME: I think Position - 1 is correct here, but I'm not sure
-        token.Position = _buffer.Position;
-
-        _currentTokens.Add(typeof(T), token);
-
-        return token;
-    }
-
-    private T CurrentToken<T>(Type parentType) where T : HTMLToken, new()
-    {
-        if (_currentTokens.TryGetValue(parentType, out var value))
-        {
-            var token = (TagToken)value;
-            if (token is T typedToken) return typedToken;
-        }
-
-        var newToken = new T();
-        _currentTokens.Add(parentType, newToken);
-        return newToken;
+        return _currentToken;
     }
 }
