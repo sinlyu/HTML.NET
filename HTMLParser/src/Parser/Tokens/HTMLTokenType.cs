@@ -6,6 +6,7 @@ public enum HTMLTokenType
     DOCTYPE,
     StartTag,
     EndTag,
+    Tag,
     Comment,
     Character,
     EndOfFile

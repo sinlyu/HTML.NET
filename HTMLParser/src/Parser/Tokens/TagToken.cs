@@ -2,16 +2,21 @@
 
 public class TagToken : HTMLToken
 {
-    private KeyValuePair<string, string> _currentAttribute;
+    private string _currentAttributeName;
+    private string _currentAttributeValue;
 
     protected TagToken(HTMLTokenType type) : base(type)
     {
         TagName = "";
+        _currentAttributeName = "";
+        _currentAttributeValue = "";
     }
 
     public TagToken() : base(HTMLTokenType.StartTag)
     {
         TagName = "";
+        _currentAttributeName = "";
+        _currentAttributeValue = "";
     }
 
     public string TagName { get; set; }
@@ -20,12 +25,8 @@ public class TagToken : HTMLToken
 
     public void NewAttribute(string name = "")
     {
-        // FIXME: The name gets built up as the parser reads the attribute name
-        // Which means that the name is not complete until the attribute value is read
-        // This can cause duplicate keys in the Attributes dictionary
-
-        _currentAttribute = new KeyValuePair<string, string>(name, string.Empty);
-        Attributes.TryAdd(_currentAttribute.Key, _currentAttribute.Value);
+        _currentAttributeName = name;
+        _currentAttributeValue = "";
     }
 
     public void NewAttribute(char name)
@@ -35,11 +36,7 @@ public class TagToken : HTMLToken
 
     public void AddAttributeName(string value)
     {
-        // FIXME: This is a hack to to replace the Key of the current attribute
-        var newAttribute = new KeyValuePair<string, string>(_currentAttribute.Key + value, _currentAttribute.Value);
-        Attributes.Remove(_currentAttribute.Key);
-        Attributes.TryAdd(newAttribute.Key, newAttribute.Value);
-        _currentAttribute = newAttribute;
+        _currentAttributeValue += value;
     }
 
     public void AddAttributeName(char value)
@@ -49,13 +46,24 @@ public class TagToken : HTMLToken
 
     public void AddAttributeValue(string value)
     {
-        Attributes[_currentAttribute.Key] += value;
-        _currentAttribute = new KeyValuePair<string, string>(_currentAttribute.Key, Attributes[_currentAttribute.Key]);
+        _currentAttributeValue += value;
     }
 
     public void AddAttributeValue(char value)
     {
         AddAttributeValue(new string(value, 1));
+    }
+    
+    public void FinishAttribute()
+    {
+        if(string.IsNullOrWhiteSpace(_currentAttributeName))
+            return;
+
+        if (Attributes.ContainsKey(_currentAttributeName))
+            Attributes[_currentAttributeName] = _currentAttributeValue;
+        
+        _currentAttributeName = "";
+        _currentAttributeValue = "";
     }
 
     public override int GetLength()

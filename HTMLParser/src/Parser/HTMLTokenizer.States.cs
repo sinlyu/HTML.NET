@@ -907,6 +907,8 @@ public partial class HTMLTokenizer
     // https://html.spec.whatwg.org/multipage/parsing.html#after-attribute-value-(quoted)-state
     private void AfterAttributeValueQuotedState(char currentInputCharacter)
     {
+        CurrentToken<TagToken>().FinishAttribute();
+        
         switch (currentInputCharacter)
         {
             // Switch to the before attribute name state.
@@ -1297,6 +1299,8 @@ public partial class HTMLTokenizer
     // https://html.spec.whatwg.org/multipage/parsing.html#after-attribute-name-state
     private void AfterAttributeNameState(char currentInputCharacter)
     {
+        CurrentToken<TagToken>().FinishAttribute();
+        
         switch (currentInputCharacter)
         {
             // Ignore the character.

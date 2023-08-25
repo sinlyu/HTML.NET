@@ -238,9 +238,7 @@ public partial class HTMLTokenizer
         _currentTokens.Remove(typeof(T));
     }
 
-    // CurrentToken helper method
-    // We check if we a have token of the specified type in the current token list
-    // If we do, we return it, otherwise we create a new token of the specified type
+    
     private T CurrentToken<T>() where T : HTMLToken, new()
     {
         // if parent class of token is TagToken, we set type to TagToken
